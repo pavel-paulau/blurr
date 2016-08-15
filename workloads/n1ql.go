@@ -248,7 +248,6 @@ func (w *N1QL) DoBatch(db databases.Database, state *State, seq chan string) {
 				err = db.Delete(key)
 			}
 			if err != nil {
-				fmt.Println(err)
 				state.Errors[op]++
 				state.Errors["total"]++
 			}
