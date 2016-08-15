@@ -3,12 +3,11 @@ package main
 import (
 	"log"
 	"math/rand"
-	"runtime"
 	"sync"
 	"time"
 
-	"github.com/pavel-paulau/blurr/databases"
-	"github.com/pavel-paulau/blurr/workloads"
+	"github.com/pavel-paulau/nb/databases"
+	"github.com/pavel-paulau/nb/workloads"
 )
 
 var config Config
@@ -19,39 +18,13 @@ var state workloads.State
 func init() {
 	config = ReadConfig()
 
-	switch config.Database.Driver {
-	case "MongoDB":
-		database = &databases.MongoDB{}
-	case "Couchbase":
-		database = &databases.Couchbase{}
-	case "Cassandra":
-		database = &databases.Cassandra{}
-	case "Tuq":
-		database = &databases.Tuq{}
-	default:
-		log.Fatal("Unsupported driver")
-	}
+	database = &databases.Couchbase{}
 
-	switch config.Workload.Type {
-	case "Default":
-		workload = &workloads.Default{
-			Config: config.Workload,
-		}
-	case "HotSpot":
-		workload = &workloads.HotSpot{
-			Config:  config.Workload,
-			Default: workloads.Default{Config: config.Workload},
-		}
-	case "N1QL":
-		r := rand.New(rand.NewSource(0))
-		zipf := rand.NewZipf(r, 1.4, 9.0, 1000)
-		workload = &workloads.N1QL{
-			Config:  config.Workload,
-			Zipf:    *zipf,
-			Default: workloads.Default{Config: config.Workload},
-		}
-	default:
-		log.Fatal("Unsupported workload")
+	r := rand.New(rand.NewSource(0))
+	zipf := rand.NewZipf(r, 1.4, 9.0, 1000)
+	workload = &workloads.N1QL{
+		Config: config.Workload,
+		Zipf:   *zipf,
 	}
 	workload.SetImplementation(workload)
 
@@ -63,8 +36,6 @@ func init() {
 }
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	wg := sync.WaitGroup{}
 	wgStats := sync.WaitGroup{}
 
@@ -72,11 +43,6 @@ func main() {
 	for worker := 0; worker < config.Workload.Workers; worker++ {
 		wg.Add(1)
 		go workload.RunCRUDWorkload(database, &state, &wg)
-	}
-
-	for worker := 0; worker < config.Workload.QueryWorkers; worker++ {
-		wg.Add(1)
-		go workload.RunQueryWorkload(database, &state, &wg)
 	}
 
 	wgStats.Add(2)

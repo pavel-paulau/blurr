@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/pavel-paulau/blurr/databases"
-	"github.com/pavel-paulau/blurr/workloads"
+	"github.com/pavel-paulau/nb/databases"
+	"github.com/pavel-paulau/nb/workloads"
 )
 
 type Config struct {
@@ -18,7 +18,7 @@ type Config struct {
 
 func ReadConfig() (config Config) {
 	flag.Usage = func() {
-		fmt.Println("Usage: blurr workload.conf")
+		fmt.Println("Usage: np workload.conf")
 	}
 	flag.Parse()
 	workload_path := flag.Arg(0)
@@ -40,9 +40,6 @@ func ReadConfig() (config Config) {
 
 	if config.Workload.Workers > 0 {
 		config.Workload.Throughput /= config.Workload.Workers
-	}
-	if config.Workload.QueryWorkers > 0 {
-		config.Workload.QueryThroughput /= config.Workload.QueryWorkers
 	}
 
 	return

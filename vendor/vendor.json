@@ -1,0 +1,37 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Uvqyxwzs9pdV148eRgpS+LJsVCk=",
+			"path": "github.com/couchbase/go-couchbase/platform",
+			"revision": "6575cf14363c4a840f4fafc01532b42c473472f8",
+			"revisionTime": "2016-08-08T17:21:48Z"
+		},
+		{
+			"checksumSHA1": "nOWyesiQ8DV7Ph/yk+lAX19eJR8=",
+			"path": "github.com/couchbase/gomemcached",
+			"revision": "6172a8c61c821c420071fe9e20e74d8e24c8cbd5",
+			"revisionTime": "2016-06-22T21:32:56Z"
+		},
+		{
+			"checksumSHA1": "5+WCamBH6ywls7z+C6uHxjhQVCA=",
+			"path": "github.com/couchbase/gomemcached/client",
+			"revision": "6172a8c61c821c420071fe9e20e74d8e24c8cbd5",
+			"revisionTime": "2016-06-22T21:32:56Z"
+		},
+		{
+			"checksumSHA1": "VyUvTYdCzR4RUKBuN6Wr4oQIWms=",
+			"path": "github.com/couchbase/goutils/logging",
+			"revision": "5823a0cbaaa9008406021dc5daf80125ea30bba6",
+			"revisionTime": "2016-03-11T02:08:04Z"
+		},
+		{
+			"checksumSHA1": "uGHfpBo4MTnWi4v+TODfwB+rbSU=",
+			"path": "github.com/couchbaselabs/go-couchbase",
+			"revision": "6575cf14363c4a840f4fafc01532b42c473472f8",
+			"revisionTime": "2016-08-08T17:21:48Z"
+		}
+	],
+	"rootPath": "github.com/pavel-paulau/nb"
+}

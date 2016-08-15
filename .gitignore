@@ -1,5 +1,7 @@
 *.iml
 .idea
-/blurr
+/nb
 bin
 pkg
+
+vendor/github.com

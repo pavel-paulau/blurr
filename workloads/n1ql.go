@@ -1,20 +1,48 @@
 package workloads
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/pavel-paulau/nb/databases"
 )
+
+const BatchSize int = 100
+
+func Hash(inString string) string {
+	h := md5.New()
+	h.Write([]byte(inString))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func RandString(key string, expectedLength int) string {
+	var randString string
+	if expectedLength > 64 {
+		baseString := RandString(key, expectedLength/2)
+		randString = baseString + baseString
+	} else {
+		randString = (Hash(key) + Hash(key[:len(key)-1]))[:expectedLength]
+	}
+	return randString
+}
 
 type N1QL struct {
 	Config       Config
 	DeletedItems int64
 	Zipf         rand.Zipf
-	Default
+	i            Workload
+}
+
+func (w *N1QL) SetImplementation(i Workload) {
+	w.i = i
 }
 
 func (w *N1QL) GenerateNewKey(currentRecords int64) string {
@@ -22,16 +50,10 @@ func (w *N1QL) GenerateNewKey(currentRecords int64) string {
 }
 
 func (w *N1QL) GenerateExistingKey(currentRecords int64) string {
-	var randRecord int64
-	total_records := currentRecords - w.DeletedItems
-	hot_records := total_records * w.Config.HotDataPercentage / 100
-	cold_records := total_records - hot_records
-	if rand.Intn(100) < w.Config.HotSpotAccessPercentage {
-		randRecord = 1 + w.DeletedItems + cold_records + rand.Int63n(hot_records)
-	} else {
-		randRecord = 1 + w.DeletedItems + rand.Int63n(cold_records)
-	}
-	return fmt.Sprintf("%012d", randRecord)
+	randRecord := 1 + rand.Int63n(currentRecords-w.DeletedItems)
+	randRecord += w.DeletedItems
+	strRandRecord := strconv.FormatInt(randRecord, 10)
+	return Hash(strRandRecord)
 }
 
 func (w *N1QL) GenerateKeyForRemoval() string {
@@ -47,54 +69,54 @@ func reverse(s string) string {
 	return string(runes)
 }
 
-func build_alphabet(key string) string {
+func buildAlphabet(key string) string {
 	return Hash(key) + Hash(reverse(key))
 }
 
-func build_name(alphabet string) string {
+func buildName(alphabet string) string {
 	return fmt.Sprintf("%s %s", alphabet[:6], alphabet[6:12])
 }
 
-func build_email(alphabet string) string {
+func buildEmail(alphabet string) string {
 	return fmt.Sprintf("%s@%s.com", alphabet[12:18], alphabet[18:24])
 }
 
-func build_city(alphabet string) string {
-	return alphabet[24:30]
-}
-
-func build_realm(alphabet string) string {
-	return alphabet[30:36]
-}
-
-func build_country(alphabet string) string {
-	return alphabet[42:48]
-}
-
-func build_county(alphabet string) string {
-	return alphabet[48:54]
-}
-
-func build_street(alphabet string) string {
+func buildStreet(alphabet string) string {
 	return alphabet[54:62]
 }
 
-func build_coins(alphabet string) float64 {
+func buildCity(alphabet string) string {
+	return alphabet[24:30]
+}
+
+func buildCounty(alphabet string) string {
+	return alphabet[48:54]
+}
+
+func buildCountry(alphabet string) string {
+	return alphabet[42:48]
+}
+
+func buildRealm(alphabet string) string {
+	return alphabet[30:36]
+}
+
+func buildCoins(alphabet string) float64 {
 	var coins, _ = strconv.ParseInt(alphabet[36:40], 16, 0)
 	return math.Max(0.1, float64(coins)/100.0)
 }
 
-func build_category(alphabet string) int16 {
+func buildCategory(alphabet string) int16 {
 	var category, _ = strconv.ParseInt(string(alphabet[41]), 16, 0)
 	return int16(category % 3)
 }
 
-func build_year(alphabet string) int16 {
+func buildYear(alphabet string) int16 {
 	var year, _ = strconv.ParseInt(string(alphabet[62]), 16, 0)
 	return int16(1985 + year)
 }
 
-func build_state(alphabet string) string {
+func buildState(alphabet string) string {
 	idx := strings.Index(alphabet, "7") % NUM_STATES
 	if idx == -1 {
 		idx = 56
@@ -102,7 +124,7 @@ func build_state(alphabet string) string {
 	return STATES[idx][0]
 }
 
-func build_full_state(alphabet string) string {
+func buildFullState(alphabet string) string {
 	idx := strings.Index(alphabet, "8") % NUM_STATES
 	if idx == -1 {
 		idx = 56
@@ -110,7 +132,7 @@ func build_full_state(alphabet string) string {
 	return STATES[idx][1]
 }
 
-func build_gmtime(alphabet string) []int16 {
+func buildGMTime(alphabet string) []int16 {
 	var id, _ = strconv.ParseInt(string(alphabet[63]), 16, 0)
 	seconds := 396 * 24 * 3600 * (id % 12)
 	d := time.Duration(seconds) * time.Second
@@ -129,7 +151,7 @@ func build_gmtime(alphabet string) []int16 {
 	}
 }
 
-func build_achievements(alphabet string) (achievements []int16) {
+func buildAchievements(alphabet string) (achievements []int16) {
 	achievement := int16(256)
 	for i, char := range alphabet[42:58] {
 		var id, _ = strconv.ParseInt(string(char), 16, 0)
@@ -143,193 +165,121 @@ func build_achievements(alphabet string) (achievements []int16) {
 
 var OVERHEAD = int(450)
 
-func (w *N1QL) RandSize(size int) int {
-	if size == OVERHEAD {
-		return 0
-	}
-	if rand.Float32() < float32(0.995) { // Outliers
-		normal := rand.NormFloat64()*0.17 + 1.0
-		rand_size := int(float64(size-OVERHEAD) * normal)
-		return rand_size
-	} else {
-		return size * int(1+w.Zipf.Uint64())
-	}
-}
-
 func (w *N1QL) GenerateValue(key string, size int) map[string]interface{} {
 	if size < OVERHEAD {
 		log.Fatalf("Wrong workload configuration: minimal value size is %v", OVERHEAD)
 	}
 
-	alphabet := build_alphabet(key)
+	alphabet := buildAlphabet(key)
 
 	return map[string]interface{}{
-		"name": map[string]interface{}{
-			"f": map[string]interface{}{
-				"f": map[string]interface{}{
-					"f": build_name(alphabet),
-				},
-			},
-		},
-		"email": map[string]interface{}{
-			"f": map[string]interface{}{
-				"f": build_email(alphabet),
-			},
-		},
-		"street": map[string]interface{}{
-			"f": map[string]interface{}{
-				"f": build_street(alphabet),
-			},
-		},
-		"city": map[string]interface{}{
-			"f": map[string]interface{}{
-				"f": build_city(alphabet),
-			},
-		},
-		"county": map[string]interface{}{
-			"f": map[string]interface{}{
-				"f": build_county(alphabet),
-			},
-		},
-		"realm": map[string]interface{}{
-			"f": build_realm(alphabet),
-		},
-		"country": map[string]interface{}{
-			"f": build_country(alphabet),
-		},
-		"coins": map[string]interface{}{
-			"f": build_coins(alphabet),
-		},
-		"state": map[string]interface{}{
-			"f": build_state(alphabet),
-		},
-		"full_state": map[string]interface{}{
-			"f": build_full_state(alphabet),
-		},
-		"category":     build_category(alphabet),
-		"achievements": build_achievements(alphabet),
-		"gmtime":       build_gmtime(alphabet),
-		"year":         build_year(alphabet),
-		"body":         RandString(key, w.RandSize(size)),
+		"name":         buildName(alphabet),
+		"email":        buildEmail(alphabet),
+		"street":       buildStreet(alphabet),
+		"city":         buildCity(alphabet),
+		"county":       buildCounty(alphabet),
+		"country":      buildCountry(alphabet),
+		"state":        buildState(alphabet),
+		"full_state":   buildFullState(alphabet),
+		"realm":        buildRealm(alphabet),
+		"coins":        buildCoins(alphabet),
+		"category":     buildCategory(alphabet),
+		"achievements": buildAchievements(alphabet),
+		"gmtime":       buildGMTime(alphabet),
+		"year":         buildYear(alphabet),
+		"body":         RandString(key, size-OVERHEAD),
 	}
 }
 
-func (w *N1QL) GenerateQueryArgs(key string) []interface{} {
-	alphabet := build_alphabet(key)
-	index := w.Config.Indexes[rand.Intn(len(w.Config.Indexes))]
+func (w *N1QL) PrepareBatch() []string {
+	operations := make([]string, 0, BatchSize)
+	for i := 0; i < w.Config.CreatePercentage; i++ {
+		operations = append(operations, "c")
+	}
+	for i := 0; i < w.Config.ReadPercentage; i++ {
+		operations = append(operations, "r")
+	}
+	for i := 0; i < w.Config.UpdatePercentage; i++ {
+		operations = append(operations, "u")
+	}
+	for i := 0; i < w.Config.DeletePercentage; i++ {
+		operations = append(operations, "d")
+	}
+	if len(operations) != BatchSize {
+		log.Fatal("Wrong workload configuration: sum of percentages is not equal 100")
+	}
+	return operations
+}
 
-	switch index {
-	case "name_and_street_by_city":
-		return []interface{}{
-			index,
-			build_city(alphabet),
+func (w *N1QL) PrepareSeq(size int64) chan string {
+	operations := w.PrepareBatch()
+	seq := make(chan string, BatchSize)
+	go func() {
+		for i := int64(0); i < size; i += int64(BatchSize) {
+			for _, randI := range rand.Perm(BatchSize) {
+				seq <- operations[randI]
+			}
 		}
-	case "name_and_email_by_county":
-		return []interface{}{
-			index,
-			build_county(alphabet),
-		}
-	case "achievements_by_realm":
-		return []interface{}{
-			index,
-			build_realm(alphabet),
-		}
-	case "name_by_coins":
-		return []interface{}{
-			index,
-			build_coins(alphabet),
-		}
-	case "email_by_achievement_and_category":
-		return []interface{}{
-			index,
-			build_achievements(alphabet),
-			build_category(alphabet),
-		}
-	case "street_by_year_and_coins":
-		return []interface{}{
-			index,
-			build_year(alphabet),
-			build_coins(alphabet),
-		}
-	case "coins_stats_by_state_and_year":
-		return []interface{}{
-			index,
-			build_state(alphabet),
-			build_year(alphabet),
-		}
-	case "coins_stats_by_gmtime_and_year":
-		return []interface{}{
-			index,
-			build_gmtime(alphabet),
-			build_year(alphabet),
-		}
-	case "coins_stats_by_full_state_and_year":
-		return []interface{}{
-			index,
-			build_full_state(alphabet),
-			build_year(alphabet),
-		}
-	case "name_and_email_and_street_and_achievements_and_coins_by_city":
-		return []interface{}{
-			index,
-			build_city(alphabet),
-		}
-	case "street_and_name_and_email_and_achievement_and_coins_by_county":
-		return []interface{}{
-			index,
-			build_county(alphabet),
-		}
-	case "category_name_and_email_and_street_and_gmtime_and_year_by_country":
-		return []interface{}{
-			index,
-			build_country(alphabet),
-		}
-	case "calc_by_city":
-		return []interface{}{
-			index,
-			build_city(alphabet),
-		}
-	case "calc_by_county":
-		return []interface{}{
-			index,
-			build_county(alphabet),
-		}
-	case "calc_by_realm":
-		return []interface{}{
-			index,
-			build_realm(alphabet),
-		}
-	case "body_by_city":
-		return []interface{}{
-			index,
-			build_city(alphabet),
-		}
-	case "body_by_realm":
-		return []interface{}{
-			index,
-			build_realm(alphabet),
-		}
-	case "body_by_country":
-		return []interface{}{
-			index,
-			build_country(alphabet),
-		}
-	case "distinct_states":
-		return []interface{}{
-			index,
-			"state.f",
-		}
-	case "distinct_full_states":
-		return []interface{}{
-			index,
-			"full_state.f",
-		}
-	case "distinct_years":
-		return []interface{}{
-			index,
-			"year",
+	}()
+	return seq
+}
+
+func (w *N1QL) DoBatch(db databases.Database, state *State, seq chan string) {
+	for i := 0; i < BatchSize; i++ {
+		op := <-seq
+		if state.Operations < w.Config.Operations {
+			var err error
+			state.Operations++
+			switch op {
+			case "c":
+				state.Records++
+				key := w.i.GenerateNewKey(state.Records)
+				value := w.i.GenerateValue(key, w.Config.ValueSize)
+				err = db.Create(key, value)
+			case "r":
+				key := w.i.GenerateExistingKey(state.Records)
+				err = db.Read(key)
+			case "u":
+				key := w.i.GenerateExistingKey(state.Records)
+				value := w.i.GenerateValue(key, w.Config.ValueSize)
+				err = db.Update(key, value)
+			case "d":
+				key := w.i.GenerateKeyForRemoval()
+				err = db.Delete(key)
+			}
+			if err != nil {
+				fmt.Println(err)
+				state.Errors[op]++
+				state.Errors["total"]++
+			}
 		}
 	}
-	log.Fatalf("Uknown index: %s", index)
-	return nil
+}
+
+func (w *N1QL) runWorkload(database databases.Database,
+	state *State, wg *sync.WaitGroup, targetBatchTimeF float64, seq chan string) {
+
+	for state.Operations < w.Config.Operations {
+		t0 := time.Now()
+		w.i.DoBatch(database, state, seq)
+		t1 := time.Now()
+
+		if !math.IsInf(targetBatchTimeF, 0) {
+			targetBatchTime := time.Duration(targetBatchTimeF * math.Pow10(9))
+			actualBatchTime := t1.Sub(t0)
+			sleepTime := (targetBatchTime - actualBatchTime)
+			if sleepTime > 0 {
+				time.Sleep(time.Duration(sleepTime))
+			}
+		}
+	}
+}
+
+func (w *N1QL) RunCRUDWorkload(database databases.Database,
+	state *State, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	seq := w.PrepareSeq(w.Config.Operations)
+	targetBatchTimeF := float64(BatchSize) / float64(w.Config.Throughput)
+	w.runWorkload(database, state, wg, targetBatchTimeF, seq)
 }

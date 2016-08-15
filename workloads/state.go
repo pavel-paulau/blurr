@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pavel-paulau/blurr/databases"
+	"github.com/pavel-paulau/nb/databases"
 )
 
 type State struct {
@@ -21,11 +21,10 @@ func (state *State) Init() {
 	state.Errors = map[string]int{}
 	state.Events = map[string]time.Time{}
 	state.Latency = map[string][]float64{
-		"Create": []float64{},
-		"Read":   []float64{},
-		"Update": []float64{},
-		"Delete": []float64{},
-		"Query":  []float64{},
+		"Create": {},
+		"Read":   {},
+		"Update": {},
+		"Delete": {},
 	}
 }
 
@@ -88,16 +87,6 @@ func (state *State) MeasureLatency(database databases.Database,
 			latency := float64(t1.Sub(t0)/time.Microsecond) / 1000
 			state.Latency["Delete"] = append(state.Latency["Delete"], latency)
 		}
-		if config.QueryWorkers > 0 {
-			state.Operations++
-			key := workload.GenerateExistingKey(state.Records)
-			args := workload.GenerateQueryArgs(key)
-			t0 := time.Now()
-			database.Query(key, args)
-			t1 := time.Now()
-			latency := float64(t1.Sub(t0)/time.Microsecond) / 1000
-			state.Latency["Query"] = append(state.Latency["Query"], latency)
-		}
 		time.Sleep(time.Second)
 	}
 }
@@ -124,7 +113,7 @@ func calcMean(data []float64) float64 {
 }
 
 func (state *State) ReportSummary() {
-	for _, op := range []string{"Create", "Read", "Update", "Delete", "Query"} {
+	for _, op := range []string{"Create", "Read", "Update", "Delete"} {
 		if len(state.Latency[op]) > 0 {
 			fmt.Printf("%v latency:\n", op)
 			for _, percentile := range []float64{0.8, 0.9, 0.95, 0.99} {
@@ -142,7 +131,6 @@ func (state *State) ReportSummary() {
 		fmt.Printf("\tRead   : %v\n", state.Errors["r"])
 		fmt.Printf("\tUpdate : %v\n", state.Errors["u"])
 		fmt.Printf("\tDelete : %v\n", state.Errors["d"])
-		fmt.Printf("\tQuery  : %v\n", state.Errors["q"])
 		fmt.Printf("\tTotal  : %v\n", state.Errors["total"])
 	}
 	fmt.Printf("Time elapsed:\n\t%v\n",

@@ -1,12 +1,9 @@
 package databases
 
 type Config struct {
-	Driver    string
-	Name      string
-	Table     string
-	Addresses []string
-	Username  string
-	Password  string
+	Address        string
+	Bucket         string
+	BucketPassword string
 }
 
 type Database interface {
@@ -21,6 +18,4 @@ type Database interface {
 	Update(key string, value map[string]interface{}) error
 
 	Delete(key string) error
-
-	Query(key string, value []interface{}) error
 }
