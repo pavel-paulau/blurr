@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 )
 
 type clientConfig struct {
@@ -15,17 +14,14 @@ type clientConfig struct {
 }
 
 type workloadConfig struct {
-	Type             string
 	CreatePercentage int
 	ReadPercentage   int
 	UpdatePercentage int
 	DeletePercentage int
 	InitialDocuments int64
 	Operations       int64
-	ValueSize        int
+	DocumentSize     int
 	Workers          int
-	Throughput       int
-	RunTime          int
 }
 
 type Config struct {
@@ -35,28 +31,24 @@ type Config struct {
 
 func readConfig() (config Config) {
 	flag.Usage = func() {
-		fmt.Println("Usage: np workload.conf")
+		fmt.Println("Usage: np workload.json")
 	}
 	flag.Parse()
 	workloadPath := flag.Arg(0)
 
 	workload, err := ioutil.ReadFile(workloadPath)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	err = json.Unmarshal(workload, &config)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if config.Workload.ReadPercentage+config.Workload.UpdatePercentage+
 		config.Workload.DeletePercentage > 0 && config.Workload.InitialDocuments == 0 {
-		log.Fatal("Please specify non-zero 'InitialDocuments'")
-	}
-
-	if config.Workload.Workers > 0 {
-		config.Workload.Throughput /= config.Workload.Workers
+		panic("Please specify non-zero 'InitialDocuments'")
 	}
 
 	return

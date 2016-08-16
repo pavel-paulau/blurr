@@ -1,10 +1,15 @@
 package main
 
 import (
-	"log"
 	"sync"
-	"time"
 )
+
+func min(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 func main() {
 	config := readConfig()
@@ -12,25 +17,22 @@ func main() {
 	client := newClient(config.Database)
 	defer client.shutdown()
 
-	workload := &Workload{Config: config.Workload}
-	state := newState(config.Workload.InitialDocuments)
+	workload := newWorkload(&config.Workload)
+
+	var opsBuffer int64 = min(1e7, config.Workload.Operations)
+	ops := make(chan string, opsBuffer)
+	go generateSeq(&config.Workload, ops)
+
+	var payloadsBuffer int64 = min(1e6, opsBuffer)
+	payloads := make(chan payload, payloadsBuffer)
+	go workload.generatePayload(payloads, ops)
+
+	go reportThroughput(workload)
 
 	wg := sync.WaitGroup{}
-	wgStats := sync.WaitGroup{}
-
 	for worker := 0; worker < config.Workload.Workers; worker++ {
 		wg.Add(1)
-		go workload.runCRUDWorkload(client, state, &wg)
+		go workload.runWorkload(client, payloads, &wg)
 	}
-
-	wgStats.Add(1)
-	go state.reportThroughput(config.Workload, &wgStats)
-
-	if config.Workload.RunTime > 0 {
-		time.Sleep(time.Duration(config.Workload.RunTime) * time.Second)
-		log.Println("Shutting down workers")
-	} else {
-		wg.Wait()
-		wgStats.Wait()
-	}
+	wg.Wait()
 }
