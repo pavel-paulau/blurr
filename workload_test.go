@@ -65,7 +65,7 @@ func TestPayloadChannel(t *testing.T) {
 	payloads := make(chan payload, totalOps)
 	go workload.generatePayload(payloads, ops)
 
-	var currOps int64 = 0
+	var currOps int64
 	for range payloads {
 		currOps++
 	}

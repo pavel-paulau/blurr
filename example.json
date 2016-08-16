@@ -1,0 +1,17 @@
+{
+    "database": {
+        "address": "http://Administrator:password@127.0.0.1:8091",
+        "bucket": "bucket-1",
+        "bucket_password": "password"
+    },
+    "workload": {
+        "create_percentage": 2,
+        "read_percentage": 80,
+        "update_percentage": 17,
+        "delete_percentage": 1,
+        "initial_documents": 1000000,
+        "operations": 1000000,
+        "document_size": 1024,
+        "workers": 100
+    }
+}

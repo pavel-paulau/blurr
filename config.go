@@ -2,45 +2,38 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
-	"fmt"
 	"io/ioutil"
 )
 
 type clientConfig struct {
-	Address        string
-	Bucket         string
-	BucketPassword string
+	Address        string `json:"address"`
+	Bucket         string `json:"bucket"`
+	BucketPassword string `json:"bucket_password"`
 }
 
 type workloadConfig struct {
-	CreatePercentage int
-	ReadPercentage   int
-	UpdatePercentage int
-	DeletePercentage int
-	InitialDocuments int64
-	Operations       int64
-	DocumentSize     int
-	Workers          int
+	CreatePercentage int   `json:"create_percentage"`
+	ReadPercentage   int   `json:"read_percentage"`
+	UpdatePercentage int   `json:"update_percentage"`
+	DeletePercentage int   `json:"delete_percentage"`
+	InitialDocuments int64 `json:"initial_documents"`
+	Operations       int64 `json:"operations"`
+	DocumentSize     int   `json:"document_size"`
+	Workers          int   `json:"workers"`
 }
 
-type Config struct {
+type nbConfig struct {
 	Database clientConfig
 	Workload workloadConfig
 }
 
-func readConfig() (config Config) {
-	flag.Usage = func() {
-		fmt.Println("Usage: np workload.json")
-	}
-	flag.Parse()
-	workloadPath := flag.Arg(0)
-
-	workload, err := ioutil.ReadFile(workloadPath)
+func readConfig(path string) nbConfig {
+	workload, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
+	var config nbConfig
 	err = json.Unmarshal(workload, &config)
 	if err != nil {
 		panic(err)
@@ -48,8 +41,12 @@ func readConfig() (config Config) {
 
 	if config.Workload.ReadPercentage+config.Workload.UpdatePercentage+
 		config.Workload.DeletePercentage > 0 && config.Workload.InitialDocuments == 0 {
-		panic("Please specify non-zero 'InitialDocuments'")
+		panic("Please specify non-zero 'initial_documents'")
 	}
 
-	return
+	if config.Workload.DocumentSize < sizeOverhead {
+		panic("Document size must be greater than 450 bytes")
+	}
+
+	return config
 }

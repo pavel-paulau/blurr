@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"sync"
 )
 
@@ -12,7 +14,13 @@ func min(a, b int64) int64 {
 }
 
 func main() {
-	config := readConfig()
+	flag.Usage = func() {
+		fmt.Println("Usage: np workload.json")
+	}
+	flag.Parse()
+	path := flag.Arg(0)
+
+	config := readConfig(path)
 
 	client := newClient(config.Database)
 	defer client.shutdown()
