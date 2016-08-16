@@ -1,6 +1,6 @@
 package main
 
-var STATES = [][]string{
+var unitedStates = [][]string{
 	{"AK", "Alaska"},
 	{"AL", "Alabama"},
 	{"AR", "Arkansas"},
@@ -59,5 +59,3 @@ var STATES = [][]string{
 	{"WV", "West Virginia"},
 	{"WY", "Wyoming"},
 }
-
-var NUM_STATES = len(STATES)

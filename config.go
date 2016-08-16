@@ -8,13 +8,13 @@ import (
 	"log"
 )
 
-type ClientConfig struct {
+type clientConfig struct {
 	Address        string
 	Bucket         string
 	BucketPassword string
 }
 
-type WorkloadConfig struct {
+type workloadConfig struct {
 	Type             string
 	CreatePercentage int
 	ReadPercentage   int
@@ -29,18 +29,18 @@ type WorkloadConfig struct {
 }
 
 type Config struct {
-	Database ClientConfig
-	Workload WorkloadConfig
+	Database clientConfig
+	Workload workloadConfig
 }
 
-func ReadConfig() (config Config) {
+func readConfig() (config Config) {
 	flag.Usage = func() {
 		fmt.Println("Usage: np workload.conf")
 	}
 	flag.Parse()
-	workload_path := flag.Arg(0)
+	workloadPath := flag.Arg(0)
 
-	workload, err := ioutil.ReadFile(workload_path)
+	workload, err := ioutil.ReadFile(workloadPath)
 	if err != nil {
 		log.Fatal(err)
 	}

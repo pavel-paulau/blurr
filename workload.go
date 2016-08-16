@@ -14,43 +14,44 @@ import (
 )
 
 const (
-	batchSize int = 100
+	batchSize    int = 100
+	sizeOverhead int = 450
 )
 
-func Hash(inString string) string {
+func hash(inString string) string {
 	h := md5.New()
 	h.Write([]byte(inString))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func RandString(key string, expectedLength int) string {
-	var randString string
+func randString(key string, expectedLength int) string {
+	var newString string
 	if expectedLength > 64 {
-		baseString := RandString(key, expectedLength/2)
-		randString = baseString + baseString
+		baseString := randString(key, expectedLength/2)
+		newString = baseString + baseString
 	} else {
-		randString = (Hash(key) + Hash(key[:len(key)-1]))[:expectedLength]
+		newString = (hash(key) + hash(key[:len(key)-1]))[:expectedLength]
 	}
-	return randString
+	return newString
 }
 
 type Workload struct {
-	Config       WorkloadConfig
+	Config       workloadConfig
 	DeletedItems int64
 }
 
-func (w *Workload) GenerateNewKey(currentDocuments int64) string {
+func (w *Workload) generateNewKey(currentDocuments int64) string {
 	return fmt.Sprintf("%012d", currentDocuments)
 }
 
-func (w *Workload) GenerateExistingKey(currentDocuments int64) string {
+func (w *Workload) generateExistingKey(currentDocuments int64) string {
 	randRecord := 1 + rand.Int63n(currentDocuments-w.DeletedItems)
 	randRecord += w.DeletedItems
 	strRandRecord := strconv.FormatInt(randRecord, 10)
-	return Hash(strRandRecord)
+	return hash(strRandRecord)
 }
 
-func (w *Workload) GenerateKeyForRemoval() string {
+func (w *Workload) generateKeyForRemoval() string {
 	w.DeletedItems++
 	return fmt.Sprintf("%012d", w.DeletedItems)
 }
@@ -64,7 +65,7 @@ func reverse(s string) string {
 }
 
 func buildAlphabet(key string) string {
-	return Hash(key) + Hash(reverse(key))
+	return hash(key) + hash(reverse(key))
 }
 
 func buildName(alphabet string) string {
@@ -111,19 +112,19 @@ func buildYear(alphabet string) int16 {
 }
 
 func buildState(alphabet string) string {
-	idx := strings.Index(alphabet, "7") % NUM_STATES
+	idx := strings.Index(alphabet, "7") % len(unitedStates)
 	if idx == -1 {
 		idx = 56
 	}
-	return STATES[idx][0]
+	return unitedStates[idx][0]
 }
 
 func buildFullState(alphabet string) string {
-	idx := strings.Index(alphabet, "8") % NUM_STATES
+	idx := strings.Index(alphabet, "8") % len(unitedStates)
 	if idx == -1 {
 		idx = 56
 	}
-	return STATES[idx][1]
+	return unitedStates[idx][1]
 }
 
 func buildGMTime(alphabet string) []int16 {
@@ -157,11 +158,9 @@ func buildAchievements(alphabet string) (achievements []int16) {
 	return
 }
 
-var OVERHEAD = int(450)
-
-func (w *Workload) GenerateValue(key string, size int) map[string]interface{} {
-	if size < OVERHEAD {
-		log.Fatalf("Wrong workload configuration: minimal value size is %v", OVERHEAD)
+func (w *Workload) generateValue(key string, size int) map[string]interface{} {
+	if size < sizeOverhead {
+		log.Fatalf("Wrong workload configuration: minimal value size is %v", sizeOverhead)
 	}
 
 	alphabet := buildAlphabet(key)
@@ -181,11 +180,11 @@ func (w *Workload) GenerateValue(key string, size int) map[string]interface{} {
 		"achievements": buildAchievements(alphabet),
 		"gmtime":       buildGMTime(alphabet),
 		"year":         buildYear(alphabet),
-		"body":         RandString(key, size-OVERHEAD),
+		"body":         randString(key, size-sizeOverhead),
 	}
 }
 
-func (w *Workload) PrepareBatch() []string {
+func (w *Workload) prepareBatch() []string {
 	operations := make([]string, 0, batchSize)
 	for i := 0; i < w.Config.CreatePercentage; i++ {
 		operations = append(operations, "c")
@@ -205,8 +204,8 @@ func (w *Workload) PrepareBatch() []string {
 	return operations
 }
 
-func (w *Workload) PrepareSeq(size int64) chan string {
-	operations := w.PrepareBatch()
+func (w *Workload) prepareSeq(size int64) chan string {
+	operations := w.prepareBatch()
 	seq := make(chan string, batchSize)
 	go func() {
 		for i := int64(0); i < size; i += int64(batchSize) {
@@ -218,7 +217,7 @@ func (w *Workload) PrepareSeq(size int64) chan string {
 	return seq
 }
 
-func (w *Workload) DoBatch(client *Client, state *State, seq chan string) {
+func (w *Workload) doBatch(client *Client, state *State, seq chan string) {
 	for i := 0; i < batchSize; i++ {
 		op := <-seq
 		if state.Operations < w.Config.Operations {
@@ -227,19 +226,19 @@ func (w *Workload) DoBatch(client *Client, state *State, seq chan string) {
 			switch op {
 			case "c":
 				state.Documents++
-				key := w.GenerateNewKey(state.Documents)
-				value := w.GenerateValue(key, w.Config.ValueSize)
-				err = client.Create(key, value)
+				key := w.generateNewKey(state.Documents)
+				value := w.generateValue(key, w.Config.ValueSize)
+				err = client.create(key, value)
 			case "r":
-				key := w.GenerateExistingKey(state.Documents)
-				err = client.Read(key)
+				key := w.generateExistingKey(state.Documents)
+				err = client.read(key)
 			case "u":
-				key := w.GenerateExistingKey(state.Documents)
-				value := w.GenerateValue(key, w.Config.ValueSize)
-				err = client.Update(key, value)
+				key := w.generateExistingKey(state.Documents)
+				value := w.generateValue(key, w.Config.ValueSize)
+				err = client.update(key, value)
 			case "d":
-				key := w.GenerateKeyForRemoval()
-				err = client.Delete(key)
+				key := w.generateKeyForRemoval()
+				err = client.delete(key)
 			}
 			if err != nil {
 				state.Errors[op]++
@@ -250,10 +249,9 @@ func (w *Workload) DoBatch(client *Client, state *State, seq chan string) {
 }
 
 func (w *Workload) runWorkload(client *Client, state *State, wg *sync.WaitGroup, targetBatchTimeF float64, seq chan string) {
-
 	for state.Operations < w.Config.Operations {
 		t0 := time.Now()
-		w.DoBatch(client, state, seq)
+		w.doBatch(client, state, seq)
 		t1 := time.Now()
 
 		if !math.IsInf(targetBatchTimeF, 0) {
@@ -267,10 +265,10 @@ func (w *Workload) runWorkload(client *Client, state *State, wg *sync.WaitGroup,
 	}
 }
 
-func (w *Workload) RunCRUDWorkload(client *Client, state *State, wg *sync.WaitGroup) {
+func (w *Workload) runCRUDWorkload(client *Client, state *State, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	seq := w.PrepareSeq(w.Config.Operations)
+	seq := w.prepareSeq(w.Config.Operations)
 	targetBatchTimeF := float64(batchSize) / float64(w.Config.Throughput)
 	w.runWorkload(client, state, wg, targetBatchTimeF, seq)
 }

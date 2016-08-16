@@ -10,7 +10,7 @@ type Client struct {
 	Bucket *couchbase.Bucket
 }
 
-func newClient(config ClientConfig) *Client {
+func newClient(config clientConfig) *Client {
 	conn, err := couchbase.Connect(config.Address)
 	if err != nil {
 		log.Fatalf("error connecting: %v", err)
@@ -29,23 +29,23 @@ func newClient(config ClientConfig) *Client {
 	return &Client{bucket}
 }
 
-func (c *Client) Shutdown() {
+func (c *Client) shutdown() {
 	c.Bucket.Close()
 }
 
-func (c *Client) Create(key string, value map[string]interface{}) error {
+func (c *Client) create(key string, value map[string]interface{}) error {
 	return c.Bucket.Set(key, 0, value)
 }
 
-func (c *Client) Read(key string) error {
+func (c *Client) read(key string) error {
 	result := map[string]interface{}{}
 	return c.Bucket.Get(key, &result)
 }
 
-func (c *Client) Update(key string, value map[string]interface{}) error {
+func (c *Client) update(key string, value map[string]interface{}) error {
 	return c.Bucket.Set(key, 0, value)
 }
 
-func (c *Client) Delete(key string) error {
+func (c *Client) delete(key string) error {
 	return c.Bucket.Delete(key)
 }
