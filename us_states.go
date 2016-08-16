@@ -1,4 +1,4 @@
-package workloads
+package main
 
 var STATES = [][]string{
 	{"AK", "Alaska"},

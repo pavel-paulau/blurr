@@ -2,37 +2,24 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"sync"
 	"time"
-
-	"github.com/pavel-paulau/nb/databases"
-	"github.com/pavel-paulau/nb/workloads"
 )
 
-var config Config
-var database databases.Database
-var workload workloads.Workload
-var state workloads.State
+var (
+	client   *Client
+	config   Config
+	state    *State
+	workload *Workload
+)
 
 func init() {
 	config = ReadConfig()
 
-	database = &databases.Couchbase{}
+	client = newClient(config.Database)
+	workload = &Workload{Config: config.Workload}
 
-	r := rand.New(rand.NewSource(0))
-	zipf := rand.NewZipf(r, 1.4, 9.0, 1000)
-	workload = &workloads.N1QL{
-		Config: config.Workload,
-		Zipf:   *zipf,
-	}
-	workload.SetImplementation(workload)
-
-	database.Init(config.Database)
-
-	state = workloads.State{}
-	state.Records = config.Workload.Records
-	state.Init()
+	state = newState(config.Workload.InitialDocuments)
 }
 
 func main() {
@@ -41,7 +28,7 @@ func main() {
 
 	for worker := 0; worker < config.Workload.Workers; worker++ {
 		wg.Add(1)
-		go workload.RunCRUDWorkload(database, &state, &wg)
+		go workload.RunCRUDWorkload(client, state, &wg)
 	}
 
 	wgStats.Add(1)
@@ -55,5 +42,5 @@ func main() {
 		wgStats.Wait()
 	}
 
-	database.Shutdown()
+	client.Shutdown()
 }

@@ -1,4 +1,4 @@
-package workloads
+package main
 
 import (
 	"fmt"
@@ -7,15 +7,19 @@ import (
 )
 
 type State struct {
-	Operations, Records int64
-	Errors              map[string]int
+	Operations, Documents int64
+	Errors                map[string]int
 }
 
 func (state *State) Init() {
-	state.Errors = map[string]int{}
+
 }
 
-func (state *State) ReportThroughput(config Config, wg *sync.WaitGroup) {
+func newState(initialDocuments int64) *State {
+	return &State{Errors: map[string]int{}, Documents: initialDocuments}
+}
+
+func (state *State) ReportThroughput(config WorkloadConfig, wg *sync.WaitGroup) {
 	defer wg.Done()
 	opsDone := int64(0)
 	samples := 1

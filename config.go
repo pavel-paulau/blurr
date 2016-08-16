@@ -6,14 +6,31 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-
-	"github.com/pavel-paulau/nb/databases"
-	"github.com/pavel-paulau/nb/workloads"
 )
 
+type ClientConfig struct {
+	Address        string
+	Bucket         string
+	BucketPassword string
+}
+
+type WorkloadConfig struct {
+	Type             string
+	CreatePercentage int
+	ReadPercentage   int
+	UpdatePercentage int
+	DeletePercentage int
+	InitialDocuments int64
+	Operations       int64
+	ValueSize        int
+	Workers          int
+	Throughput       int
+	RunTime          int
+}
+
 type Config struct {
-	Database databases.Config
-	Workload workloads.Config
+	Database ClientConfig
+	Workload WorkloadConfig
 }
 
 func ReadConfig() (config Config) {
@@ -34,8 +51,8 @@ func ReadConfig() (config Config) {
 	}
 
 	if config.Workload.ReadPercentage+config.Workload.UpdatePercentage+
-		config.Workload.DeletePercentage > 0 && config.Workload.Records == 0 {
-		log.Fatal("Please specify non-zero 'Records'")
+		config.Workload.DeletePercentage > 0 && config.Workload.InitialDocuments == 0 {
+		log.Fatal("Please specify non-zero 'InitialDocuments'")
 	}
 
 	if config.Workload.Workers > 0 {

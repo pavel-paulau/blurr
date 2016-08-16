@@ -1,4 +1,4 @@
-package workloads
+package main
 
 import (
 	"crypto/md5"
@@ -11,11 +11,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pavel-paulau/nb/databases"
 )
 
-const BatchSize int = 100
+const (
+	batchSize int = 100
+)
 
 func Hash(inString string) string {
 	h := md5.New()
@@ -34,29 +34,23 @@ func RandString(key string, expectedLength int) string {
 	return randString
 }
 
-type N1QL struct {
-	Config       Config
+type Workload struct {
+	Config       WorkloadConfig
 	DeletedItems int64
-	Zipf         rand.Zipf
-	i            Workload
 }
 
-func (w *N1QL) SetImplementation(i Workload) {
-	w.i = i
+func (w *Workload) GenerateNewKey(currentDocuments int64) string {
+	return fmt.Sprintf("%012d", currentDocuments)
 }
 
-func (w *N1QL) GenerateNewKey(currentRecords int64) string {
-	return fmt.Sprintf("%012d", currentRecords)
-}
-
-func (w *N1QL) GenerateExistingKey(currentRecords int64) string {
-	randRecord := 1 + rand.Int63n(currentRecords-w.DeletedItems)
+func (w *Workload) GenerateExistingKey(currentDocuments int64) string {
+	randRecord := 1 + rand.Int63n(currentDocuments-w.DeletedItems)
 	randRecord += w.DeletedItems
 	strRandRecord := strconv.FormatInt(randRecord, 10)
 	return Hash(strRandRecord)
 }
 
-func (w *N1QL) GenerateKeyForRemoval() string {
+func (w *Workload) GenerateKeyForRemoval() string {
 	w.DeletedItems++
 	return fmt.Sprintf("%012d", w.DeletedItems)
 }
@@ -165,7 +159,7 @@ func buildAchievements(alphabet string) (achievements []int16) {
 
 var OVERHEAD = int(450)
 
-func (w *N1QL) GenerateValue(key string, size int) map[string]interface{} {
+func (w *Workload) GenerateValue(key string, size int) map[string]interface{} {
 	if size < OVERHEAD {
 		log.Fatalf("Wrong workload configuration: minimal value size is %v", OVERHEAD)
 	}
@@ -191,8 +185,8 @@ func (w *N1QL) GenerateValue(key string, size int) map[string]interface{} {
 	}
 }
 
-func (w *N1QL) PrepareBatch() []string {
-	operations := make([]string, 0, BatchSize)
+func (w *Workload) PrepareBatch() []string {
+	operations := make([]string, 0, batchSize)
 	for i := 0; i < w.Config.CreatePercentage; i++ {
 		operations = append(operations, "c")
 	}
@@ -205,18 +199,18 @@ func (w *N1QL) PrepareBatch() []string {
 	for i := 0; i < w.Config.DeletePercentage; i++ {
 		operations = append(operations, "d")
 	}
-	if len(operations) != BatchSize {
+	if len(operations) != batchSize {
 		log.Fatal("Wrong workload configuration: sum of percentages is not equal 100")
 	}
 	return operations
 }
 
-func (w *N1QL) PrepareSeq(size int64) chan string {
+func (w *Workload) PrepareSeq(size int64) chan string {
 	operations := w.PrepareBatch()
-	seq := make(chan string, BatchSize)
+	seq := make(chan string, batchSize)
 	go func() {
-		for i := int64(0); i < size; i += int64(BatchSize) {
-			for _, randI := range rand.Perm(BatchSize) {
+		for i := int64(0); i < size; i += int64(batchSize) {
+			for _, randI := range rand.Perm(batchSize) {
 				seq <- operations[randI]
 			}
 		}
@@ -224,28 +218,28 @@ func (w *N1QL) PrepareSeq(size int64) chan string {
 	return seq
 }
 
-func (w *N1QL) DoBatch(db databases.Database, state *State, seq chan string) {
-	for i := 0; i < BatchSize; i++ {
+func (w *Workload) DoBatch(client *Client, state *State, seq chan string) {
+	for i := 0; i < batchSize; i++ {
 		op := <-seq
 		if state.Operations < w.Config.Operations {
 			var err error
 			state.Operations++
 			switch op {
 			case "c":
-				state.Records++
-				key := w.i.GenerateNewKey(state.Records)
-				value := w.i.GenerateValue(key, w.Config.ValueSize)
-				err = db.Create(key, value)
+				state.Documents++
+				key := w.GenerateNewKey(state.Documents)
+				value := w.GenerateValue(key, w.Config.ValueSize)
+				err = client.Create(key, value)
 			case "r":
-				key := w.i.GenerateExistingKey(state.Records)
-				err = db.Read(key)
+				key := w.GenerateExistingKey(state.Documents)
+				err = client.Read(key)
 			case "u":
-				key := w.i.GenerateExistingKey(state.Records)
-				value := w.i.GenerateValue(key, w.Config.ValueSize)
-				err = db.Update(key, value)
+				key := w.GenerateExistingKey(state.Documents)
+				value := w.GenerateValue(key, w.Config.ValueSize)
+				err = client.Update(key, value)
 			case "d":
-				key := w.i.GenerateKeyForRemoval()
-				err = db.Delete(key)
+				key := w.GenerateKeyForRemoval()
+				err = client.Delete(key)
 			}
 			if err != nil {
 				state.Errors[op]++
@@ -255,12 +249,11 @@ func (w *N1QL) DoBatch(db databases.Database, state *State, seq chan string) {
 	}
 }
 
-func (w *N1QL) runWorkload(database databases.Database,
-	state *State, wg *sync.WaitGroup, targetBatchTimeF float64, seq chan string) {
+func (w *Workload) runWorkload(client *Client, state *State, wg *sync.WaitGroup, targetBatchTimeF float64, seq chan string) {
 
 	for state.Operations < w.Config.Operations {
 		t0 := time.Now()
-		w.i.DoBatch(database, state, seq)
+		w.DoBatch(client, state, seq)
 		t1 := time.Now()
 
 		if !math.IsInf(targetBatchTimeF, 0) {
@@ -274,11 +267,10 @@ func (w *N1QL) runWorkload(database databases.Database,
 	}
 }
 
-func (w *N1QL) RunCRUDWorkload(database databases.Database,
-	state *State, wg *sync.WaitGroup) {
+func (w *Workload) RunCRUDWorkload(client *Client, state *State, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	seq := w.PrepareSeq(w.Config.Operations)
-	targetBatchTimeF := float64(BatchSize) / float64(w.Config.Throughput)
-	w.runWorkload(database, state, wg, targetBatchTimeF, seq)
+	targetBatchTimeF := float64(batchSize) / float64(w.Config.Throughput)
+	w.runWorkload(client, state, wg, targetBatchTimeF, seq)
 }
