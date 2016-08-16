@@ -5,43 +5,44 @@ import (
 	"log"
 	"math/rand"
 	"sync"
+	"time"
 )
 
 const (
 	sizeOverhead int = 450
 )
 
-type Workload struct {
+type dbWorkload struct {
 	config            *workloadConfig
 	currentOperations int64
 	currentDocuments  int64
 	deletedDocuments  int64
 }
 
-func newWorkload(config *workloadConfig) *Workload {
-	return &Workload{
+func newWorkload(config *workloadConfig) *dbWorkload {
+	return &dbWorkload{
 		config:           config,
 		currentDocuments: config.InitialDocuments,
 	}
 }
 
-func (w *Workload) generateNewKey() string {
+func (w *dbWorkload) generateNewKey() string {
 	w.currentDocuments++
 	return fmt.Sprintf("%012d", w.currentDocuments)
 }
 
-func (w *Workload) generateExistingKey() string {
+func (w *dbWorkload) generateExistingKey() string {
 	randRecord := 1 + rand.Int63n(w.currentDocuments-w.deletedDocuments)
 	randRecord += w.deletedDocuments
 	return fmt.Sprintf("%012d", randRecord)
 }
 
-func (w *Workload) generateKeyForRemoval() string {
+func (w *dbWorkload) generateKeyForRemoval() string {
 	w.deletedDocuments++
 	return fmt.Sprintf("%012d", w.deletedDocuments)
 }
 
-func (w *Workload) generateValue(key string) doc {
+func (w *dbWorkload) generateValue(key string) doc {
 	return newDoc(key, w.config.DocumentSize)
 }
 
@@ -87,7 +88,7 @@ type payload struct {
 	value   doc
 }
 
-func (w *Workload) generatePayload(payloads chan payload, ops chan string) {
+func (w *dbWorkload) generatePayload(payloads chan payload, ops chan string) {
 	defer close(payloads)
 
 	for op := range ops {
@@ -111,7 +112,7 @@ func (w *Workload) generatePayload(payloads chan payload, ops chan string) {
 	}
 }
 
-func (w *Workload) do(client *Client, p payload) {
+func (w *dbWorkload) do(client *cbClient, p payload) {
 	var err error
 
 	switch p.op {
@@ -130,11 +131,25 @@ func (w *Workload) do(client *Client, p payload) {
 	}
 }
 
-func (w *Workload) runWorkload(client *Client, payloads chan payload, wg *sync.WaitGroup) {
+func (w *dbWorkload) runWorkload(client *cbClient, payloads chan payload, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for p := range payloads {
 		w.currentOperations++
 		w.do(client, p)
+	}
+}
+
+func (w *dbWorkload) reportThroughput() {
+	opsDone := int64(0)
+
+	fmt.Println("Benchmark started.")
+	for {
+		time.Sleep(10 * time.Second)
+
+		throughput := (w.currentOperations - opsDone) / 10
+		opsDone = w.currentOperations
+
+		fmt.Printf("%10v ops/sec; total operations: %v\n", throughput, w.currentOperations)
 	}
 }

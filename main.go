@@ -35,7 +35,7 @@ func main() {
 	payloads := make(chan payload, payloadsBuffer)
 	go workload.generatePayload(payloads, ops)
 
-	go reportThroughput(workload)
+	go workload.reportThroughput()
 
 	wg := sync.WaitGroup{}
 	for worker := 0; worker < config.Workload.Workers; worker++ {
