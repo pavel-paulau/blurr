@@ -33,16 +33,16 @@ func (c *Client) shutdown() {
 	c.Bucket.Close()
 }
 
-func (c *Client) create(key string, value map[string]interface{}) error {
+func (c *Client) create(key string, value interface{}) error {
 	return c.Bucket.Set(key, 0, value)
 }
 
 func (c *Client) read(key string) error {
-	result := map[string]interface{}{}
+	var result doc
 	return c.Bucket.Get(key, &result)
 }
 
-func (c *Client) update(key string, value map[string]interface{}) error {
+func (c *Client) update(key string, value interface{}) error {
 	return c.Bucket.Set(key, 0, value)
 }
 
