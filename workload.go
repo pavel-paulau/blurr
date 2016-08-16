@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 	"math/rand"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -27,8 +26,7 @@ func (w *Workload) generateNewKey(currentDocuments int64) string {
 func (w *Workload) generateExistingKey(currentDocuments int64) string {
 	randRecord := 1 + rand.Int63n(currentDocuments-w.DeletedItems)
 	randRecord += w.DeletedItems
-	strRandRecord := strconv.FormatInt(randRecord, 10)
-	return hash(strRandRecord)
+	return fmt.Sprintf("%012d", randRecord)
 }
 
 func (w *Workload) generateKeyForRemoval() string {
@@ -108,14 +106,14 @@ func (w *Workload) doBatch(client *Client, state *State, seq chan string) {
 	}
 }
 
-func (w *Workload) runWorkload(client *Client, state *State, wg *sync.WaitGroup, targetBatchTimeF float64, seq chan string) {
+func (w *Workload) runWorkload(client *Client, state *State, wg *sync.WaitGroup, targetBatchTime float64, seq chan string) {
 	for state.Operations < w.Config.Operations {
 		t0 := time.Now()
 		w.doBatch(client, state, seq)
 		t1 := time.Now()
 
-		if !math.IsInf(targetBatchTimeF, 0) {
-			targetBatchTime := time.Duration(targetBatchTimeF * math.Pow10(9))
+		if !math.IsInf(targetBatchTime, 0) {
+			targetBatchTime := time.Duration(targetBatchTime * math.Pow10(9))
 			actualBatchTime := t1.Sub(t0)
 			sleepTime := (targetBatchTime - actualBatchTime)
 			if sleepTime > 0 {
@@ -129,6 +127,8 @@ func (w *Workload) runCRUDWorkload(client *Client, state *State, wg *sync.WaitGr
 	defer wg.Done()
 
 	seq := w.prepareSeq(w.Config.Operations)
-	targetBatchTimeF := float64(batchSize) / float64(w.Config.Throughput)
-	w.runWorkload(client, state, wg, targetBatchTimeF, seq)
+
+	targetBatchTime := float64(batchSize) / float64(w.Config.Throughput)
+
+	w.runWorkload(client, state, wg, targetBatchTime, seq)
 }
