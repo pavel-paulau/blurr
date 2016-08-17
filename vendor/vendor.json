@@ -31,6 +31,18 @@
 			"path": "github.com/couchbaselabs/go-couchbase",
 			"revision": "6575cf14363c4a840f4fafc01532b42c473472f8",
 			"revisionTime": "2016-08-08T17:21:48Z"
+		},
+		{
+			"checksumSHA1": "lUBE/ZMjzN5VJkT6lgQw3WI72lo=",
+			"path": "github.com/dustin/go-humanize",
+			"revision": "2fcb5204cdc65b4bec9fd0a87606bb0d0e3c54e8",
+			"revisionTime": "2016-07-21T06:51:13Z"
+		},
+		{
+			"checksumSHA1": "fqa2S9/pXDgLQJFo+FYpk/t1/Ms=",
+			"path": "github.com/samuel/go-metrics/metrics",
+			"revision": "7ccf3e0e1fb1795571fc4be7fd70fba49f9d9c0b",
+			"revisionTime": "2015-08-19T23:19:12Z"
 		}
 	],
 	"rootPath": "github.com/pavel-paulau/nb"

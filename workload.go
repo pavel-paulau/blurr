@@ -6,11 +6,20 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/dustin/go-humanize"
+	"github.com/samuel/go-metrics/metrics"
 )
 
 const (
-	batchSize        = 100
-	sizeOverhead int = 450
+	batchSize         = 100
+	sizeOverhead  int = 450
+	reservoirSize     = 1e5
+)
+
+var (
+	defaultPercentiles     = []float64{0.5, 0.8, 0.9, 0.95, 0.99, 0.999}
+	defaultPercentileNames = []string{"p50", "p80", "p90", "p95", "p99", "p999"}
 )
 
 type dbWorkload struct {
@@ -18,6 +27,7 @@ type dbWorkload struct {
 	currentOperations int64
 	currentDocuments  int64
 	deletedDocuments  int64
+	queryLatency      metrics.Sample
 	targetBatchTime   time.Duration
 }
 
@@ -25,6 +35,7 @@ func newWorkload(config *workloadConfig) *dbWorkload {
 	w := dbWorkload{
 		config:           config,
 		currentDocuments: config.InitialDocuments,
+		queryLatency:     metrics.NewUniformSample(reservoirSize),
 	}
 
 	if config.Throughput > 0 {
@@ -33,6 +44,18 @@ func newWorkload(config *workloadConfig) *dbWorkload {
 	}
 
 	return &w
+}
+
+func (w *dbWorkload) startPayloadFeed() chan payload {
+	var opsBuffer int64 = min(1e7, w.config.Operations)
+	ops := make(chan string, opsBuffer)
+	go generateSeq(w.config, ops)
+
+	var payloadsBuffer int64 = min(1e6, opsBuffer)
+	payloads := make(chan payload, payloadsBuffer)
+	go w.generatePayload(payloads, ops)
+
+	return payloads
 }
 
 func (w *dbWorkload) generateNewKey() string {
@@ -121,7 +144,7 @@ func (w *dbWorkload) generatePayload(payloads chan payload, ops chan string) {
 	}
 }
 
-func (w *dbWorkload) do(client *cbClient, p payload) {
+func (w *dbWorkload) do(client *dataClient, p payload) {
 	var err error
 
 	switch p.op {
@@ -149,7 +172,7 @@ func (w *dbWorkload) sleep(t0 *time.Time) {
 	*t0 = time.Now()
 }
 
-func (w *dbWorkload) runWorkload(client *cbClient, payloads chan payload, wg *sync.WaitGroup) {
+func (w *dbWorkload) runWorkload(client *dataClient, payloads chan payload, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var batch int64
@@ -168,16 +191,41 @@ func (w *dbWorkload) runWorkload(client *cbClient, payloads chan payload, wg *sy
 	}
 }
 
+func (w *dbWorkload) runQueries(client *queryClient) {
+	for {
+		key := w.generateExistingKey()
+		value := w.generateValue(key)
+
+		t0 := time.Now()
+		if err := client.query(value); err == nil {
+			latency := time.Now().Sub(t0)
+			w.queryLatency.Update(int64(latency))
+		} else {
+			log.Println(err)
+		}
+	}
+}
+
 func (w *dbWorkload) reportThroughput() {
 	var opsDone int64
 
-	fmt.Println("Benchmark started...")
+	fmt.Println("Workload started.")
 	for {
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 
-		throughput := (w.currentOperations - opsDone) / 10
+		opsThroughput := (w.currentOperations - opsDone) / 5
 		opsDone = w.currentOperations
 
-		fmt.Printf("%10v ops/sec; total operations: %v\n", throughput, w.currentOperations)
+		fmt.Printf("%10d ops/sec; total ops: %s;\n", opsThroughput, humanize.Comma(w.currentOperations))
+	}
+}
+
+func (w *dbWorkload) reportLatency() {
+	histogram := metrics.NewSampledHistogram(w.queryLatency)
+	percentiles := histogram.Percentiles(defaultPercentiles)
+
+	fmt.Println("Query latency:")
+	for i, p := range defaultPercentileNames {
+		fmt.Printf("\t%s\t: %s us\n", p, humanize.Comma(percentiles[i]/1e3))
 	}
 }

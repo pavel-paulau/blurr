@@ -5,10 +5,15 @@ import (
 	"io/ioutil"
 )
 
+type address struct {
+	Data string `json:"data"`
+	N1QL string `json:"n1ql"`
+}
+
 type clientConfig struct {
-	Address        string `json:"address"`
-	Bucket         string `json:"bucket"`
-	BucketPassword string `json:"bucket_password"`
+	Address        address `json:"address"`
+	Bucket         string  `json:"bucket"`
+	BucketPassword string  `json:"bucket_password"`
 }
 
 type workloadConfig struct {
@@ -23,9 +28,16 @@ type workloadConfig struct {
 	Throughput       int64 `json:"throughput"`
 }
 
+type queryConfig struct {
+	Index       string `json:"index"`
+	Consistency string `json:"consistency"`
+	Workers     int64  `json:"workers"`
+}
+
 type nbConfig struct {
-	Database clientConfig
-	Workload workloadConfig
+	Database clientConfig   `json:"database"`
+	Workload workloadConfig `json:"workload"`
+	Query    queryConfig    `json:"query"`
 }
 
 func readConfig(path string) nbConfig {

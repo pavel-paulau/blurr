@@ -18,29 +18,25 @@ func main() {
 		fmt.Println("Usage: np workload.json")
 	}
 	flag.Parse()
-	path := flag.Arg(0)
+	config := readConfig(flag.Arg(0))
 
-	config := readConfig(path)
-
-	client := newClient(config.Database)
-	defer client.shutdown()
+	qClient := newQueryClient(config)
+	dClient := newDataClient(config.Database)
+	defer dClient.shutdown()
 
 	workload := newWorkload(&config.Workload)
-
-	var opsBuffer int64 = min(1e7, config.Workload.Operations)
-	ops := make(chan string, opsBuffer)
-	go generateSeq(&config.Workload, ops)
-
-	var payloadsBuffer int64 = min(1e6, opsBuffer)
-	payloads := make(chan payload, payloadsBuffer)
-	go workload.generatePayload(payloads, ops)
-
+	payloads := workload.startPayloadFeed()
 	go workload.reportThroughput()
 
 	wg := sync.WaitGroup{}
 	for worker := int64(0); worker < config.Workload.Workers; worker++ {
 		wg.Add(1)
-		go workload.runWorkload(client, payloads, &wg)
+		go workload.runWorkload(dClient, payloads, &wg)
+	}
+	for worker := int64(0); worker < config.Query.Workers; worker++ {
+		go workload.runQueries(qClient)
 	}
 	wg.Wait()
+
+	workload.reportLatency()
 }

@@ -10,7 +10,10 @@ func TestExampleConfig(t *testing.T) {
 
 	expectedConfig := nbConfig{
 		Database: clientConfig{
-			Address:        "http://Administrator:password@127.0.0.1:8091",
+			Address: address{
+				Data: "http://Administrator:password@127.0.0.1:8091",
+				N1QL: "http://Administrator:password@127.0.0.1:8093",
+			},
 			Bucket:         "bucket-1",
 			BucketPassword: "password",
 		},
@@ -23,6 +26,12 @@ func TestExampleConfig(t *testing.T) {
 			Operations:       1000000,
 			DocumentSize:     1024,
 			Workers:          100,
+			Throughput:       100000,
+		},
+		Query: queryConfig{
+			Index:       "by_email",
+			Consistency: "request_plus",
+			Workers:     10,
 		},
 	}
 

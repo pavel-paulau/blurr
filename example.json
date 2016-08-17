@@ -1,6 +1,9 @@
 {
     "database": {
-        "address": "http://Administrator:password@127.0.0.1:8091",
+        "address": {
+            "data": "http://Administrator:password@127.0.0.1:8091",
+            "n1ql": "http://Administrator:password@127.0.0.1:8093"
+        },
         "bucket": "bucket-1",
         "bucket_password": "password"
     },
@@ -12,6 +15,12 @@
         "initial_documents": 1000000,
         "operations": 1000000,
         "document_size": 1024,
-        "workers": 100
+        "workers": 100,
+        "throughput": 100000
+    },
+    "query": {
+        "index": "by_email",
+        "consistency": "request_plus",
+        "workers": 10
     }
 }

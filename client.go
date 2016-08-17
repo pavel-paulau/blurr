@@ -4,12 +4,12 @@ import (
 	"github.com/couchbaselabs/go-couchbase"
 )
 
-type cbClient struct {
+type dataClient struct {
 	Bucket *couchbase.Bucket
 }
 
-func newClient(config clientConfig) *cbClient {
-	conn, err := couchbase.Connect(config.Address)
+func newDataClient(config clientConfig) *dataClient {
+	conn, err := couchbase.Connect(config.Address.Data)
 	if err != nil {
 		fatalf("error connecting: %v\n", err)
 	}
@@ -24,26 +24,26 @@ func newClient(config clientConfig) *cbClient {
 		fatalf("error getting a bucket: %v\n", err)
 	}
 
-	return &cbClient{bucket}
+	return &dataClient{bucket}
 }
 
-func (c *cbClient) shutdown() {
+func (c *dataClient) shutdown() {
 	c.Bucket.Close()
 }
 
-func (c *cbClient) create(key string, value interface{}) error {
+func (c *dataClient) create(key string, value interface{}) error {
 	return c.Bucket.Set(key, 0, value)
 }
 
-func (c *cbClient) read(key string) error {
+func (c *dataClient) read(key string) error {
 	var result doc
 	return c.Bucket.Get(key, &result)
 }
 
-func (c *cbClient) update(key string, value interface{}) error {
+func (c *dataClient) update(key string, value interface{}) error {
 	return c.Bucket.Set(key, 0, value)
 }
 
-func (c *cbClient) delete(key string) error {
+func (c *dataClient) delete(key string) error {
 	return c.Bucket.Delete(key)
 }
