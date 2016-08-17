@@ -38,7 +38,7 @@ func main() {
 	go workload.reportThroughput()
 
 	wg := sync.WaitGroup{}
-	for worker := 0; worker < config.Workload.Workers; worker++ {
+	for worker := int64(0); worker < config.Workload.Workers; worker++ {
 		wg.Add(1)
 		go workload.runWorkload(client, payloads, &wg)
 	}

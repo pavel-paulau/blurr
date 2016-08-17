@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	batchSize        = 100
 	sizeOverhead int = 450
 )
 
@@ -17,13 +18,21 @@ type dbWorkload struct {
 	currentOperations int64
 	currentDocuments  int64
 	deletedDocuments  int64
+	targetBatchTime   time.Duration
 }
 
 func newWorkload(config *workloadConfig) *dbWorkload {
-	return &dbWorkload{
+	w := dbWorkload{
 		config:           config,
 		currentDocuments: config.InitialDocuments,
 	}
+
+	if config.Throughput > 0 {
+		throughput := config.Throughput / config.Workers
+		w.targetBatchTime = 100 * time.Duration(1e9/throughput)
+	}
+
+	return &w
 }
 
 func (w *dbWorkload) generateNewKey() string {
@@ -131,19 +140,38 @@ func (w *dbWorkload) do(client *cbClient, p payload) {
 	}
 }
 
+func (w *dbWorkload) sleep(t0 *time.Time) {
+	batchTime := time.Now().Sub(*t0)
+	sleepTime := w.targetBatchTime - batchTime
+	if sleepTime > 0 {
+		time.Sleep(time.Duration(sleepTime))
+	}
+	*t0 = time.Now()
+}
+
 func (w *dbWorkload) runWorkload(client *cbClient, payloads chan payload, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	var batch int64
+	t0 := time.Now()
 	for p := range payloads {
 		w.currentOperations++
 		w.do(client, p)
+
+		if w.config.Throughput > 0 {
+			batch++
+			if batch == batchSize {
+				w.sleep(&t0)
+				batch = 0
+			}
+		}
 	}
 }
 
 func (w *dbWorkload) reportThroughput() {
-	opsDone := int64(0)
+	var opsDone int64
 
-	fmt.Println("Benchmark started.")
+	fmt.Println("Benchmark started...")
 	for {
 		time.Sleep(10 * time.Second)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"time"
 )
 
 func TestOpsChannel(t *testing.T) {
@@ -92,4 +93,17 @@ func TestPanicOps(t *testing.T) {
 
 	ops := make(chan string, 1000)
 	generateSeq(&config, ops)
+}
+
+func TestBatchTime(t *testing.T) {
+	config := workloadConfig{
+		Workers:    100,
+		Throughput: 100000,
+	}
+
+	workload := newWorkload(&config)
+
+	if workload.targetBatchTime != 100*time.Millisecond {
+		t.Error("expected 100ms, got", workload.targetBatchTime)
+	}
 }

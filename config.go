@@ -19,7 +19,8 @@ type workloadConfig struct {
 	InitialDocuments int64 `json:"initial_documents"`
 	Operations       int64 `json:"operations"`
 	DocumentSize     int   `json:"document_size"`
-	Workers          int   `json:"workers"`
+	Workers          int64 `json:"workers"`
+	Throughput       int64 `json:"throughput"`
 }
 
 type nbConfig struct {
