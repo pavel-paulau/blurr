@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/couchbaselabs/go-couchbase"
 )
 
@@ -13,17 +11,17 @@ type cbClient struct {
 func newClient(config clientConfig) *cbClient {
 	conn, err := couchbase.Connect(config.Address)
 	if err != nil {
-		log.Fatalf("error connecting: %v", err)
+		fatalf("error connecting: %v\n", err)
 	}
 
 	pool, err := conn.GetPool("default")
 	if err != nil {
-		log.Fatalf("error getting a pool: %v", err)
+		fatalf("error getting a pool: %v\n", err)
 	}
 
 	bucket, err := pool.GetBucketWithAuth(config.Bucket, config.Bucket, config.BucketPassword)
 	if err != nil {
-		log.Fatalf("error getting a bucket: %v", err)
+		fatalf("error getting a bucket: %v\n", err)
 	}
 
 	return &cbClient{bucket}

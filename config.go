@@ -30,22 +30,22 @@ type nbConfig struct {
 func readConfig(path string) nbConfig {
 	workload, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		fatalf("error reading the configuration file '%v': %v\n", path, err)
 	}
 
 	var config nbConfig
 	err = json.Unmarshal(workload, &config)
 	if err != nil {
-		panic(err)
+		fatalf("error parsing the configuration file %v: %v\n", path, err)
 	}
 
 	if config.Workload.ReadPercentage+config.Workload.UpdatePercentage+
 		config.Workload.DeletePercentage > 0 && config.Workload.InitialDocuments == 0 {
-		panic("Please specify non-zero 'initial_documents'")
+		fatalln("please specify non-zero 'initial_documents'")
 	}
 
 	if config.Workload.DocumentSize < sizeOverhead {
-		panic("Document size must be greater than 450 bytes")
+		fatalln("document size must be greater than 450 bytes")
 	}
 
 	return config
