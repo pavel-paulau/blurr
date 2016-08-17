@@ -5,6 +5,13 @@ N1QL benchmarking tool
 [![Build Status](https://travis-ci.org/pavel-paulau/nb.svg?branch=master)](https://travis-ci.org/pavel-paulau/nb)
 [![Coverage Status](https://coveralls.io/repos/github/pavel-paulau/nb/badge.svg?branch=master)](https://coveralls.io/github/pavel-paulau/nb?branch=master)
 
+Indexes
+-------
+
+| Code name | Index    | Statement                             |
+|-----------|----------|---------------------------------------|
+|Q2         | by_email | SELECT * FROM bucket WHERE email='%s' |
+
 Documents
 ---------
 
@@ -65,10 +72,3 @@ Format:
 | gmtime         | integer array | 9       | N/A             | 12                      |
 | year           | integer       | N/A     | [1985, 2000]    | 15                      |
 | body           | string        | Vary    | N/A             | ∞                       |
-
-Indexes
--------
-
-| Index   | Statement                             |
-|---------|---------------------------------------|
-|by_email | SELECT * FROM bucket WHERE email='%s' |
