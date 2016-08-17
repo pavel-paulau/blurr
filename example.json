@@ -16,11 +16,12 @@
         "operations": 1000000,
         "document_size": 1024,
         "workers": 100,
-        "throughput": 100000
+        "throughput": 100000,
+        "query_workers": 10,
+        "query_throughput": 500
     },
     "query": {
         "index": "by_email",
-        "consistency": "request_plus",
-        "workers": 10
+        "consistency": "request_plus"
     }
 }

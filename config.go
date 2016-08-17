@@ -26,12 +26,13 @@ type workloadConfig struct {
 	DocumentSize     int   `json:"document_size"`
 	Workers          int64 `json:"workers"`
 	Throughput       int64 `json:"throughput"`
+	QueryWorkers     int64 `json:"query_workers"`
+	QueryThroughput  int64 `json:"query_throughput"`
 }
 
 type queryConfig struct {
 	Index       string `json:"index"`
 	Consistency string `json:"consistency"`
-	Workers     int64  `json:"workers"`
 }
 
 type nbConfig struct {

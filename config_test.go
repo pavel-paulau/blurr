@@ -27,11 +27,12 @@ func TestExampleConfig(t *testing.T) {
 			DocumentSize:     1024,
 			Workers:          100,
 			Throughput:       100000,
+			QueryWorkers:     10,
+			QueryThroughput:  500,
 		},
 		Query: queryConfig{
 			Index:       "by_email",
 			Consistency: "request_plus",
-			Workers:     10,
 		},
 	}
 

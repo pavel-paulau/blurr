@@ -23,12 +23,13 @@ var (
 )
 
 type dbWorkload struct {
-	config            *workloadConfig
-	currentOperations int64
-	currentDocuments  int64
-	deletedDocuments  int64
-	queryLatency      metrics.Sample
-	targetBatchTime   time.Duration
+	config               *workloadConfig
+	currentOperations    int64
+	currentDocuments     int64
+	deletedDocuments     int64
+	queryLatency         metrics.Sample
+	targetBatchTime      time.Duration
+	targetQueryBatchTime time.Duration
 }
 
 func newWorkload(config *workloadConfig) *dbWorkload {
@@ -40,7 +41,12 @@ func newWorkload(config *workloadConfig) *dbWorkload {
 
 	if config.Throughput > 0 {
 		throughput := config.Throughput / config.Workers
-		w.targetBatchTime = 100 * time.Duration(1e9/throughput)
+		w.targetBatchTime = batchSize * time.Duration(1e9/throughput)
+	}
+
+	if config.QueryThroughput > 0 {
+		throughput := config.QueryThroughput / config.QueryWorkers
+		w.targetQueryBatchTime = batchSize * time.Duration(1e9/throughput)
 	}
 
 	return &w
@@ -144,7 +150,7 @@ func (w *dbWorkload) generatePayload(payloads chan payload, ops chan string) {
 	}
 }
 
-func (w *dbWorkload) do(client *dataClient, p payload) {
+func (w *dbWorkload) doData(client *dataClient, p payload) {
 	var err error
 
 	switch p.op {
@@ -163,9 +169,9 @@ func (w *dbWorkload) do(client *dataClient, p payload) {
 	}
 }
 
-func (w *dbWorkload) sleep(t0 *time.Time) {
+func (w *dbWorkload) sleep(t0 *time.Time, targetTime time.Duration) {
 	batchTime := time.Now().Sub(*t0)
-	sleepTime := w.targetBatchTime - batchTime
+	sleepTime := targetTime - batchTime
 	if sleepTime > 0 {
 		time.Sleep(time.Duration(sleepTime))
 	}
@@ -177,31 +183,47 @@ func (w *dbWorkload) runWorkload(client *dataClient, payloads chan payload, wg *
 
 	var batch int64
 	t0 := time.Now()
+
 	for p := range payloads {
 		w.currentOperations++
-		w.do(client, p)
+		w.doData(client, p)
 
 		if w.config.Throughput > 0 {
 			batch++
 			if batch == batchSize {
-				w.sleep(&t0)
+				w.sleep(&t0, w.targetBatchTime)
 				batch = 0
 			}
 		}
 	}
 }
 
-func (w *dbWorkload) runQueries(client *queryClient) {
-	for {
-		key := w.generateExistingKey()
-		value := w.generateValue(key)
+func (w *dbWorkload) doQuery(client *queryClient) {
+	key := w.generateExistingKey()
+	value := w.generateValue(key)
 
-		t0 := time.Now()
-		if err := client.query(value); err == nil {
-			latency := time.Now().Sub(t0)
-			w.queryLatency.Update(int64(latency))
-		} else {
-			log.Println(err)
+	t0 := time.Now()
+	if err := client.query(value); err == nil {
+		latency := time.Now().Sub(t0)
+		w.queryLatency.Update(int64(latency))
+	} else {
+		log.Println(err)
+	}
+}
+
+func (w *dbWorkload) runQueries(client *queryClient) {
+	var batch int64
+	t0 := time.Now()
+
+	for {
+		w.doQuery(client)
+
+		if w.config.QueryThroughput > 0 {
+			batch++
+			if batch == batchSize {
+				w.sleep(&t0, w.targetQueryBatchTime)
+				batch = 0
+			}
 		}
 	}
 }

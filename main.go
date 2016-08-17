@@ -33,7 +33,7 @@ func main() {
 		wg.Add(1)
 		go workload.runWorkload(dClient, payloads, &wg)
 	}
-	for worker := int64(0); worker < config.Query.Workers; worker++ {
+	for worker := int64(0); worker < config.Workload.QueryWorkers; worker++ {
 		go workload.runQueries(qClient)
 	}
 	wg.Wait()
