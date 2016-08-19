@@ -246,7 +246,7 @@ func (w *dbWorkload) reportLatency() {
 	histogram := metrics.NewSampledHistogram(w.queryLatency)
 	percentiles := histogram.Percentiles(defaultPercentiles)
 
-	fmt.Println("Query latency:")
+	fmt.Printf("Query latency, %d samples:\n", w.queryLatency.Len())
 	for i, p := range defaultPercentileNames {
 		fmt.Printf("\t%s\t: %s us\n", p, humanize.Comma(percentiles[i]/1e3))
 	}
