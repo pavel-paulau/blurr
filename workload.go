@@ -14,7 +14,7 @@ import (
 const (
 	batchSize         = 100
 	sizeOverhead  int = 450
-	reservoirSize     = 1e5
+	reservoirSize     = 1e6
 )
 
 var (
