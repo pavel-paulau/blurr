@@ -1,44 +1,45 @@
 package main
 
 import (
-	"encoding/json"
 	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
 type address struct {
-	Data string `json:"data"`
-	N1QL string `json:"n1ql"`
+	Data string `yaml:"data"`
+	N1QL string `yaml:"n1ql"`
 }
 
 type clientConfig struct {
-	Address        address `json:"address"`
-	Bucket         string  `json:"bucket"`
-	BucketPassword string  `json:"bucket_password"`
+	Address        address `yaml:"address"`
+	Bucket         string  `yaml:"bucket"`
+	BucketPassword string  `yaml:"bucket_password"`
 }
 
 type workloadConfig struct {
-	CreatePercentage int   `json:"create_percentage"`
-	ReadPercentage   int   `json:"read_percentage"`
-	UpdatePercentage int   `json:"update_percentage"`
-	DeletePercentage int   `json:"delete_percentage"`
-	InitialDocuments int64 `json:"initial_documents"`
-	Operations       int64 `json:"operations"`
-	DocumentSize     int   `json:"document_size"`
-	Workers          int64 `json:"workers"`
-	Throughput       int64 `json:"throughput"`
-	QueryWorkers     int64 `json:"query_workers"`
-	QueryThroughput  int64 `json:"query_throughput"`
+	CreatePercentage int   `yaml:"create_percentage"`
+	ReadPercentage   int   `yaml:"read_percentage"`
+	UpdatePercentage int   `yaml:"update_percentage"`
+	DeletePercentage int   `yaml:"delete_percentage"`
+	InitialDocuments int64 `yaml:"initial_documents"`
+	Operations       int64 `yaml:"operations"`
+	DocumentSize     int   `yaml:"document_size"`
+	Workers          int64 `yaml:"workers"`
+	Throughput       int64 `yaml:"throughput"`
+	QueryWorkers     int64 `yaml:"query_workers"`
+	QueryThroughput  int64 `yaml:"query_throughput"`
 }
 
 type queryConfig struct {
-	Index       string `json:"index"`
-	Consistency string `json:"consistency"`
+	Index       string `yaml:"index"`
+	Consistency string `yaml:"consistency"`
 }
 
 type nbConfig struct {
-	Database clientConfig   `json:"database"`
-	Workload workloadConfig `json:"workload"`
-	Query    queryConfig    `json:"query"`
+	Database clientConfig   `yaml:"database"`
+	Workload workloadConfig `yaml:"workload"`
+	Query    queryConfig    `yaml:"query"`
 }
 
 func readConfig(path string) nbConfig {
@@ -48,7 +49,7 @@ func readConfig(path string) nbConfig {
 	}
 
 	var config nbConfig
-	err = json.Unmarshal(workload, &config)
+	err = yaml.Unmarshal(workload, &config)
 	if err != nil {
 		fatalf("error parsing the configuration file %v: %v\n", path, err)
 	}

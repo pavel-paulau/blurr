@@ -15,7 +15,7 @@ func min(a, b int64) int64 {
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("Usage: np workload.json")
+		fmt.Println("Usage: np workload.yaml")
 	}
 	flag.Parse()
 	config := readConfig(flag.Arg(0))

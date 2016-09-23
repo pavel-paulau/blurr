@@ -6,7 +6,7 @@ import (
 )
 
 func TestExampleConfig(t *testing.T) {
-	actualConfig := readConfig("./example.json")
+	actualConfig := readConfig("./example.yml")
 
 	expectedConfig := nbConfig{
 		Database: clientConfig{

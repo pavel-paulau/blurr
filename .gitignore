@@ -5,3 +5,4 @@ bin
 pkg
 
 vendor/github.com
+vendor/gopkg.in/
