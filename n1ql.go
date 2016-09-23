@@ -14,11 +14,15 @@ var (
 )
 
 type queryClient struct {
+	httpClient              *http.Client
 	url, index, consistency string
 }
 
 func newQueryClient(config nbConfig) *queryClient {
+	t := &http.Transport{MaxIdleConnsPerHost: int(config.Workload.QueryWorkers)}
+
 	client := queryClient{
+		httpClient:  &http.Client{Transport: t},
 		url:         fmt.Sprintf("%s/query/service", config.Database.Address.N1QL),
 		index:       config.Query.Index,
 		consistency: config.Query.Consistency,
@@ -32,11 +36,11 @@ func (c *queryClient) post(statement string) error {
 		"scan_consistency": []string{c.consistency},
 	}
 
-	resp, err := http.PostForm(c.url, values)
-	defer resp.Body.Close()
+	resp, err := c.httpClient.PostForm(c.url, values)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
