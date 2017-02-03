@@ -7,5 +7,3 @@ fmt:
 test:
 	go test -v -cover -race .
 
-clean:
-	rm -fr nb

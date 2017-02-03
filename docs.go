@@ -1,4 +1,4 @@
-package main
+package qb
 
 import (
 	"crypto/md5"
@@ -8,6 +8,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	sizeOverhead = 450
 )
 
 func hash(inString string) string {

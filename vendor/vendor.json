@@ -1,55 +1,6 @@
 {
 	"comment": "",
 	"ignore": "test",
-	"package": [
-		{
-			"checksumSHA1": "Uvqyxwzs9pdV148eRgpS+LJsVCk=",
-			"path": "github.com/couchbase/go-couchbase/platform",
-			"revision": "6575cf14363c4a840f4fafc01532b42c473472f8",
-			"revisionTime": "2016-08-08T17:21:48Z"
-		},
-		{
-			"checksumSHA1": "nOWyesiQ8DV7Ph/yk+lAX19eJR8=",
-			"path": "github.com/couchbase/gomemcached",
-			"revision": "6172a8c61c821c420071fe9e20e74d8e24c8cbd5",
-			"revisionTime": "2016-06-22T21:32:56Z"
-		},
-		{
-			"checksumSHA1": "5+WCamBH6ywls7z+C6uHxjhQVCA=",
-			"path": "github.com/couchbase/gomemcached/client",
-			"revision": "6172a8c61c821c420071fe9e20e74d8e24c8cbd5",
-			"revisionTime": "2016-06-22T21:32:56Z"
-		},
-		{
-			"checksumSHA1": "VyUvTYdCzR4RUKBuN6Wr4oQIWms=",
-			"path": "github.com/couchbase/goutils/logging",
-			"revision": "5823a0cbaaa9008406021dc5daf80125ea30bba6",
-			"revisionTime": "2016-03-11T02:08:04Z"
-		},
-		{
-			"checksumSHA1": "uGHfpBo4MTnWi4v+TODfwB+rbSU=",
-			"path": "github.com/couchbaselabs/go-couchbase",
-			"revision": "6575cf14363c4a840f4fafc01532b42c473472f8",
-			"revisionTime": "2016-08-08T17:21:48Z"
-		},
-		{
-			"checksumSHA1": "lUBE/ZMjzN5VJkT6lgQw3WI72lo=",
-			"path": "github.com/dustin/go-humanize",
-			"revision": "2fcb5204cdc65b4bec9fd0a87606bb0d0e3c54e8",
-			"revisionTime": "2016-07-21T06:51:13Z"
-		},
-		{
-			"checksumSHA1": "fqa2S9/pXDgLQJFo+FYpk/t1/Ms=",
-			"path": "github.com/samuel/go-metrics/metrics",
-			"revision": "7ccf3e0e1fb1795571fc4be7fd70fba49f9d9c0b",
-			"revisionTime": "2015-08-19T23:19:12Z"
-		},
-		{
-			"checksumSHA1": "SPMXWeoFQa5z0pLPmqpcFzyHqQQ=",
-			"path": "gopkg.in/yaml.v2",
-			"revision": "31c299268d302dd0aa9a0dcf765a3d58971ac83f",
-			"revisionTime": "2016-09-12T16:56:03Z"
-		}
-	],
-	"rootPath": "github.com/pavel-paulau/nb"
+	"package": [],
+	"rootPath": "github.com/pavel-paulau/qb"
 }

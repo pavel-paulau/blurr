@@ -1,6 +1,6 @@
 *.iml
 .idea
-/nb
+/qb
 bin
 pkg
 

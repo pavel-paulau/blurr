@@ -1,4 +1,4 @@
-package main
+package qb
 
 var unitedStates = [][]string{
 	{"AK", "Alaska"},
