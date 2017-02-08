@@ -1,8 +1,8 @@
 build:
-	go build -v
+	go build -v -o cb_load ./cbload
 
 fmt:
-	gofmt -w -s *.go
+	find . -name "*.go" -not -path "./vendor/*" | xargs gofmt -w -s
 
 test:
 	go test -v -cover -race .

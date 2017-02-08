@@ -40,7 +40,6 @@ func TestDoc(t *testing.T) {
 		LocalGroup:  "12d687",
 	}
 	actualDoc := newDoc(123456789, "prefix-3626229738a3b9", 0)
-	actualDoc.UUID = ""
 
 	if !reflect.DeepEqual(expectedDoc, actualDoc) {
 		t.Errorf("expected: %+v, got: %+v", expectedDoc, actualDoc)
@@ -48,14 +47,14 @@ func TestDoc(t *testing.T) {
 }
 
 func TestDocSize(t *testing.T) {
-	for _, size := range []int{512, 768, 1024, 2048} {
+	for _, size := range []int64{512, 768, 1024, 2048} {
 		doc := newDoc(123456789, "prefix-003626229738a3b9", size)
 
 		b, err := json.Marshal(&doc)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if len(b) != size {
+		if len(b) != int(size) {
 			t.Errorf("expected %v, got %v", size, len(b))
 		}
 	}
@@ -116,12 +115,6 @@ func BenchmarkNewCategory(b *testing.B) {
 	i := int64(123456789)
 	for n := 0; n < b.N; n++ {
 		newCategory(i)
-	}
-}
-
-func BenchmarkNewUUID(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		newUUID()
 	}
 }
 
@@ -192,16 +185,34 @@ func BenchmarkNewKey(b *testing.B) {
 
 func BenchmarkBaseDoc(b *testing.B) {
 	i := int64(123456789)
-	size := 0
+	var size int64
 	k := "prefix-003626229738a3b9"
 	for n := 0; n < b.N; n++ {
 		newDoc(i, k, size)
 	}
 }
 
-func BenchmarkNewDoc(b *testing.B) {
+func BenchmarkNewDoc512(b *testing.B) {
 	i := int64(123456789)
-	size := 1024
+	size := int64(512)
+	k := "prefix-003626229738a3b9"
+	for n := 0; n < b.N; n++ {
+		newDoc(i, k, size)
+	}
+}
+
+func BenchmarkNewDoc1024(b *testing.B) {
+	i := int64(123456789)
+	size := int64(1024)
+	k := "prefix-003626229738a3b9"
+	for n := 0; n < b.N; n++ {
+		newDoc(i, k, size)
+	}
+}
+
+func BenchmarkNewDoc2048(b *testing.B) {
+	i := int64(123456789)
+	size := int64(2048)
 	k := "prefix-003626229738a3b9"
 	for n := 0; n < b.N; n++ {
 		newDoc(i, k, size)

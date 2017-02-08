@@ -4,24 +4,22 @@ import (
 	"math"
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const (
-	sizeOverhead = 481
+	sizeOverhead = int64(435)
 	chars        = "9CjASFTWkKgHrNl8eJXzfphmyb6ncvR2IDU3P1qiL0s4xYotuEQGB7dwaZ5VOM"
 	numChars     = int64(len(chars))
 )
 
-func newString(i int64, s string, size int) string {
+func newString(i int64, s string, size int64) string {
 	newString := make([]byte, size)
 	bytes := []byte(s)
 	numShifts := len(bytes)
 
-	for j := 0; j < size; j++ {
+	for j := int64(0); j < size; j++ {
 		shift := bytes[numShifts-1]
-		idx := (i + int64(j) + int64(shift)) % numChars
+		idx := (i + j + int64(shift)) % numChars
 		newString[j] = chars[idx]
 		numShifts--
 		if numShifts == 0 {
@@ -109,10 +107,6 @@ func newDateOfBirth(alphabet string) string {
 	return t.Format(time.RFC3339)
 }
 
-func newUUID() string {
-	return uuid.New().String()
-}
-
 func newAvatar(alphabet string) string {
 	return "https://www.gravatar.com/avatar/" + alphabet[32:]
 }
@@ -139,7 +133,6 @@ type doc struct {
 	Category    int64   `json:"category"`
 	Balance     float64 `json:"balance"`
 	DateOfBirth string  `json:"dob"`
-	UUID        string  `json:"uuid"`
 	Notes       string  `json:"notes"`
 	Avatar      string  `json:"avatar"`
 	Age         int64   `json:"age"`
@@ -151,7 +144,7 @@ func newKey(prefix string, i int64) string {
 	return prefix + "-" + strconv.FormatInt(i*i, 16)
 }
 
-func newDoc(i int64, key string, size int) doc {
+func newDoc(i int64, key string, size int64) doc {
 	alphabet := newAlphabet(i, key)
 
 	var notes string
@@ -175,7 +168,6 @@ func newDoc(i int64, key string, size int) doc {
 		Category:    newCategory(i),
 		Balance:     newBalance(alphabet),
 		DateOfBirth: newDateOfBirth(alphabet),
-		UUID:        newUUID(),
 		Notes:       notes,
 		Avatar:      newAvatar(alphabet),
 		Company:     newCompany(alphabet, i),
