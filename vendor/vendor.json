@@ -1,6 +1,13 @@
 {
 	"comment": "",
 	"ignore": "test",
-	"package": [],
+	"package": [
+		{
+			"checksumSHA1": "UP2wONSE346WHWwT20G1Xedd6ZI=",
+			"path": "github.com/google/uuid",
+			"revision": "064e2069ce9c359c118179501254f67d7d37ba24",
+			"revisionTime": "2016-11-28T19:12:14Z"
+		}
+	],
 	"rootPath": "github.com/pavel-paulau/qb"
 }
