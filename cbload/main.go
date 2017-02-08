@@ -8,7 +8,7 @@ import (
 	"github.com/pavel-paulau/qb"
 )
 
-const GOGC = 300
+const _GOGC = 300
 
 var (
 	numWorkers, numDocs, docSize int64
@@ -16,7 +16,7 @@ var (
 )
 
 func init() {
-	debug.SetGCPercent(GOGC)
+	debug.SetGCPercent(_GOGC)
 }
 
 func main() {

@@ -65,10 +65,10 @@ func newCompany(alphabet string, i int64) string {
 func newStreet(i int64) string {
 	building := strconv.FormatInt(i%5000, 10)
 	idx := i % numSuffixes
-	capped_small := newGroup(i, 10)
-	capped_large := newGroup(i, 1000*(1+i%3))
+	cappedSmall := newGroup(i, 10)
+	cappedLarge := newGroup(i, 1000*(1+i%3))
 
-	return building + " " + capped_small + " " + capped_large + " " + streetSuffixes[idx]
+	return building + " " + cappedSmall + " " + cappedLarge + " " + streetSuffixes[idx]
 }
 
 func newZipCode(i int64) int64 {

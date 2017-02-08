@@ -1,6 +1,6 @@
 package qb
 
-type Payload struct {
+type kvPayload struct {
 	key   string
 	value *doc
 }
@@ -14,8 +14,8 @@ func min(a, b int64) int64 {
 	return b
 }
 
-func generatePayload(workerID, numDocs, docSize int64) chan Payload {
-	payload := make(chan Payload, min(1e3, numDocs))
+func generatePayload(workerID, numDocs, docSize int64) chan kvPayload {
+	payload := make(chan kvPayload, min(1e3, numDocs))
 
 	go func() {
 		defer close(payload)
@@ -24,7 +24,7 @@ func generatePayload(workerID, numDocs, docSize int64) chan Payload {
 			j := workerID*numDocs + i
 			key := newKey(prefix, j)
 			doc := newDoc(j, key, docSize)
-			payload <- Payload{key, &doc}
+			payload <- kvPayload{key, &doc}
 		}
 	}()
 
