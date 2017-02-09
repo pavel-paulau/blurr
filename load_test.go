@@ -6,11 +6,11 @@ import (
 	"testing"
 )
 
-func insertMock(key string, value interface{}) error {
+func insertMock(workerID int64, key string, value interface{}) error {
 	return nil
 }
 
-func insertMockFailure(key string, value interface{}) error {
+func insertMockFailure(workerID int64, key string, value interface{}) error {
 	return errors.New("test")
 }
 

@@ -7,4 +7,5 @@ pkg
 vendor/github.com
 vendor/gopkg.in/
 
-cb_load
+cbl
+mgl

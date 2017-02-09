@@ -1,5 +1,6 @@
 build:
-	go build -v -o cb_load ./cbload
+	go build -v -o cbl ./cbload
+	go build -v -o mgl ./mongoload
 
 fmt:
 	find . -name "*.go" -not -path "./vendor/*" | xargs gofmt -w -s

@@ -24,7 +24,7 @@ func main() {
 	flag.Int64Var(&numDocs, "docs", 1e3, "number of documents to insert")
 	flag.Int64Var(&docSize, "size", 512, "average size of the documents")
 
-	flag.StringVar(&hostname, "hostname", "127.0.0.1", "Couchbase Server hostname")
+	flag.StringVar(&hostname, "hostname", "127.0.0.1", "MongoDB hostname")
 
 	flag.Parse()
 
