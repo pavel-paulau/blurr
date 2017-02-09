@@ -2,6 +2,7 @@ package qb
 
 import (
 	"math"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -30,7 +31,7 @@ func newString(i int64, s string, size int64) string {
 }
 
 func newAlphabet(i int64, key string) string {
-	return newString(i, key, 64)
+	return newString(i, key[len(prefix):], 64)
 }
 
 func newFirstName(alphabet string) string {
@@ -119,15 +120,15 @@ type address struct {
 	City      string `json:"city"`
 	County    string `json:"county"`
 	Country   string `json:"country"`
-	FullState string `json:"fullState"`
+	FullState string `json:"fullstate"`
 	State     string `json:"state"`
 	Street    string `json:"street"`
 	Zip       int64  `json:"zip"`
 }
 
 type doc struct {
-	FirstName   string  `json:"firstName"`
-	LastName    string  `json:"lastName"`
+	FirstName   string  `json:"firstname"`
+	LastName    string  `json:"lastname"`
 	Email       string  `json:"email"`
 	Address     address `json:"address"`
 	Category    int64   `json:"category"`
@@ -137,11 +138,16 @@ type doc struct {
 	Avatar      string  `json:"avatar"`
 	Age         int64   `json:"age"`
 	Company     string  `json:"company"`
-	LocalGroup  string  `json:"localGroup"`
+	LocalGroup  string  `json:"localgroup"`
 }
 
 func newKey(prefix string, i int64) string {
 	return prefix + "-" + strconv.FormatInt(i*i, 16)
+}
+
+func existingKey(prefix string, numDocs int64) (int64, string) {
+	i := rand.Int63n(numDocs)
+	return i, newKey(prefix, i)
 }
 
 func newDoc(i int64, key string, size int64) doc {

@@ -5,7 +5,9 @@ import (
 )
 
 func TestGeneratePayloadSmall(t *testing.T) {
-	for payload := range generatePayload(10, 100, 512) {
+	w := WorkloadSettings{NumDocs: 100, DocSize: 512}
+
+	for payload := range generatePayload(10, &w) {
 		if payload.value.Age > 100 {
 			t.Fatalf("unexpected payload: %+v", payload)
 		}
@@ -13,9 +15,11 @@ func TestGeneratePayloadSmall(t *testing.T) {
 }
 
 func TestGeneratePayloadLarge(t *testing.T) {
-	for payload := range generatePayload(10, 1e4, 256) {
+	w := WorkloadSettings{NumDocs: 1e4, DocSize: 256}
+
+	for payload := range generatePayload(10, &w) {
 		if payload.value.Notes != "" {
-			t.Fatalf("unexpected payload: %+v", payload)
+			t.Fatalf("unexpected payload: %+v", *payload.value)
 		}
 	}
 }

@@ -17,15 +17,25 @@ func TestNewKey(t *testing.T) {
 	}
 }
 
+func TestExistingKey(t *testing.T) {
+	prefix := "prefix"
+	i, actualKey := existingKey(prefix, 1000000)
+	expectedKey := newKey(prefix, i)
+
+	if expectedKey != actualKey {
+		t.Errorf("expected: %v, got: %v", expectedKey, actualKey)
+	}
+}
+
 func TestDoc(t *testing.T) {
 	expectedDoc := doc{
 		FirstName: "ckyK2nI3",
-		LastName:  "vR3I13Rx",
-		Email:     "Rccs0EvY@RBu7aQ.com",
+		LastName:  "v1JDXLP0",
+		Email:     "xqo6snEY@Q7tw3G.com",
 		Address: address{
-			City:      "Ga75aGAG",
-			County:    "EEC9kQS",
-			Country:   "GHWr8Kg8r",
+			City:      "P5dV9ajx",
+			County:    "OYFCTKA",
+			Country:   "H7Wdlg8Xr",
 			FullState: "Nebraska",
 			State:     "NE",
 			Street:    "1789 bc614e 1e240 Place",
@@ -34,8 +44,8 @@ func TestDoc(t *testing.T) {
 		Category:    4,
 		Balance:     163.06,
 		DateOfBirth: "2007-02-16T00:00:00Z",
-		Avatar:      "https://www.gravatar.com/avatar/75aGAGEEC9kQSGHWr8Kg8rJ8gygkkhpv",
-		Company:     "J8gygkkhpv inc.",
+		Avatar:      "https://www.gravatar.com/avatar/dV9ajxOYFCTKAH7Wdlg8Xrf9eCmzynpv",
+		Company:     "f9eCmzynpv inc.",
 		Age:         23,
 		LocalGroup:  "12d687",
 	}
@@ -180,6 +190,14 @@ func BenchmarkNewKey(b *testing.B) {
 	i := int64(123456789)
 	for n := 0; n < b.N; n++ {
 		newKey(prefix, i)
+	}
+}
+
+func BenchmarkExistingKey(b *testing.B) {
+	prefix := "prefix"
+	i := int64(123456789)
+	for n := 0; n < b.N; n++ {
+		existingKey(prefix, i)
 	}
 }
 
