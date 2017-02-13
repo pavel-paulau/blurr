@@ -1,5 +1,10 @@
 package qb
 
+func q1(keySpace int64) queryPayload {
+	_, key := existingKey(prefix, keySpace)
+	return queryPayload{"_id", key}
+}
+
 func q2(keySpace int64) queryPayload {
 	i, key := existingKey(prefix, keySpace)
 	alphabet := newAlphabet(i, key)

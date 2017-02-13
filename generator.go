@@ -18,6 +18,7 @@ const prefix = "user-profile"
 
 const (
 	insert = iota
+	q1query
 	q2query
 	q3query
 )
@@ -100,6 +101,8 @@ func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan queryPayloa
 				key := newKey(prefix, keySpace)
 				doc := newDoc(keySpace, key, w.DocSize)
 				ch1 <- kvPayload{key, &doc}
+			case q1query:
+				ch2 <- q1(currDocuments)
 			case q2query:
 				ch2 <- q2(currDocuments)
 			case q3query:

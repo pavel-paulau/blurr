@@ -35,6 +35,8 @@ type WorkloadSettings struct {
 //
 func (w *WorkloadSettings) SetQueryType(workload string) {
 	switch workload {
+	case "Q1":
+		w.QueryType = q1query
 	case "Q2":
 		w.QueryType = q2query
 	case "Q3":

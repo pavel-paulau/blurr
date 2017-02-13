@@ -70,6 +70,7 @@ func TestRun(t *testing.T) {
 func TestSetQuery(t *testing.T) {
 	w := WorkloadSettings{}
 	mapping := map[string]int{
+		"Q1": q1query,
 		"Q2": q2query,
 		"Q3": q3query,
 	}

@@ -4,6 +4,14 @@ import (
 	"testing"
 )
 
+func TestQ1(t *testing.T) {
+	payload := q1(123456789)
+
+	if payload.field != "_id" {
+		t.Errorf("expected: '_id', got: %v", payload.field)
+	}
+}
+
 func TestQ2(t *testing.T) {
 	payload := q2(123456789)
 
