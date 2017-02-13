@@ -11,6 +11,10 @@ import (
 	"github.com/couchbase/go-couchbase"
 )
 
+const (
+	bucketName = "default"
+)
+
 var (
 	cbb                       *couchbase.Bucket
 	n1ql                      *http.Client
@@ -32,7 +36,7 @@ func InitDatabase(hostname string, consistency string) error {
 		return err
 	}
 
-	cbb, err = pool.GetBucket("default")
+	cbb, err = pool.GetBucket(bucketName)
 	if err != nil {
 		return err
 	}
@@ -40,7 +44,7 @@ func InitDatabase(hostname string, consistency string) error {
 	t := &http.Transport{MaxIdleConnsPerHost: 10240}
 	n1ql = &http.Client{Transport: t}
 
-	queryURL = fmt.Sprintf("http://%s:8093/query", hostname)
+	queryURL = fmt.Sprintf("http://%s:8093/query/service", hostname)
 
 	scanConsistency = consistency
 
