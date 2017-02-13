@@ -7,6 +7,11 @@ import (
 
 var mgoc []*mgo.Session
 
+const (
+	dbName = "default"
+	cName  = "default"
+)
+
 // InitDatabase initializes a pool of MongoDB clients.
 func InitDatabase(hostname string, numWorkers int64) error {
 	session, err := mgo.Dial(hostname)
@@ -29,9 +34,14 @@ func Insert(workerId int64, key string, value interface{}) error {
 
 // Query finds matching documents using MongoDB queries.
 func Query(workerId int64, field string, arg interface{}) error {
+	// FIXME: support multiple selectors
 	query := bson.M{field: arg}
+
+	// FIXME: support different projections
+	projection := bson.M{"address": 1, "_id": 0}
+
 	session := mgoc[workerId]
 	var rs []interface{}
-	// FIXME: support different queries
-	return session.DB("default").C("default").Find(query).Select(bson.M{"address": 1}).All(&rs)
+
+	return session.DB(dbName).C(cName).Find(query).Select(projection).All(&rs)
 }
