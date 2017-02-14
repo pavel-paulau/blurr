@@ -28,7 +28,7 @@ func TestExistingKey(t *testing.T) {
 }
 
 func TestDoc(t *testing.T) {
-	expectedDoc := doc{
+	expectedDoc := Doc{
 		FirstName: "ckyK2nI3",
 		LastName:  "v1JDXLP0",
 		Email:     "xqo6snEY@Q7tw3G.com",

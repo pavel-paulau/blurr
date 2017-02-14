@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type insertFn func(workerID int64, key string, value interface{}) error
+type insertFn func(workerID int64, key string, value *Doc) error
 
 type queryFn func(workerID int64, field string, arg interface{}) error
 

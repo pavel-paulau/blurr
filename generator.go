@@ -6,7 +6,7 @@ import (
 
 type kvPayload struct {
 	key   string
-	value *doc
+	value *Doc
 }
 
 type queryPayload struct {

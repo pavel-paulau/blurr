@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/couchbase/go-couchbase"
+
+	"github.com/pavel-paulau/qb"
 )
 
 const (
@@ -52,7 +54,7 @@ func InitDatabase(hostname string, consistency string) error {
 }
 
 // Insert adds new documents to Couchbase Server bucket using SET operation.
-func Insert(_ int64, key string, value interface{}) error {
+func Insert(_ int64, key string, value *qb.Doc) error {
 	return cbb.Set(key, 0, value)
 }
 

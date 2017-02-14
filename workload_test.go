@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-func insertMock(_ int64, _ string, _ interface{}) error {
+func insertMock(_ int64, _ string, _ *Doc) error {
 	return nil
 }
 
-func insertMockFailure(_ int64, _ string, _ interface{}) error {
+func insertMockFailure(_ int64, _ string, _ *Doc) error {
 	return errors.New("test")
 }
 

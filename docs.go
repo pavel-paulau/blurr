@@ -126,7 +126,8 @@ type address struct {
 	Zip       int64  `json:"zip"`
 }
 
-type doc struct {
+type Doc struct {
+	ID          string  `json:",omitempty" bson:"_id"`
 	FirstName   string  `json:"firstname"`
 	LastName    string  `json:"lastname"`
 	Email       string  `json:"email"`
@@ -150,7 +151,7 @@ func existingKey(prefix string, numDocs int64) (int64, string) {
 	return i, newKey(prefix, i)
 }
 
-func newDoc(i int64, key string, size int64) doc {
+func newDoc(i int64, key string, size int64) Doc {
 	alphabet := newAlphabet(i, key)
 
 	var notes string
@@ -158,7 +159,7 @@ func newDoc(i int64, key string, size int64) doc {
 		notes = newString(i<<1, alphabet, size-sizeOverhead)
 	}
 
-	return doc{
+	return Doc{
 		FirstName: newFirstName(alphabet),
 		LastName:  newLastName(alphabet),
 		Email:     newEmail(alphabet),

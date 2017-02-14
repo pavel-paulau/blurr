@@ -3,6 +3,8 @@ package mongo
 import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/pavel-paulau/qb"
 )
 
 var mgoc []*mgo.Session
@@ -27,7 +29,8 @@ func InitDatabase(hostname string, numWorkers int64) error {
 }
 
 // Insert adds new documents to MongoDB collection.
-func Insert(workerId int64, key string, value interface{}) error {
+func Insert(workerId int64, key string, value *qb.Doc) error {
+	value.ID = key
 	session := mgoc[workerId]
 	return session.DB("default").C("default").Insert(value)
 }
