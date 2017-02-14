@@ -8,7 +8,7 @@ import (
 
 type insertFn func(workerID int64, key string, value *Doc) error
 
-type queryFn func(workerID int64, field string, arg interface{}) error
+type queryFn func(workerID int64, payload *QueryPayload) error
 
 func singleLoad(wg *sync.WaitGroup, workerID int64, w *WorkloadSettings) {
 	defer wg.Done()
@@ -32,7 +32,7 @@ type WorkloadSettings struct {
 	QueryType                    int
 }
 
-//
+// SetQueryType matches string query type to integer value
 func (w *WorkloadSettings) SetQueryType(workload string) {
 	switch workload {
 	case "Q1":
@@ -41,6 +41,8 @@ func (w *WorkloadSettings) SetQueryType(workload string) {
 		w.QueryType = q2query
 	case "Q3":
 		w.QueryType = q3query
+	case "Q4":
+		w.QueryType = q4query
 	}
 }
 
@@ -70,7 +72,7 @@ func singleRun(wg *sync.WaitGroup, workerID int64, w *WorkloadSettings, ctx cont
 				logFatalln(err)
 			}
 		case payload := <-ch2:
-			if err := w.QFn(workerID, payload.field, payload.arg); err != nil {
+			if err := w.QFn(workerID, payload); err != nil {
 				logFatalln(err)
 			}
 		case <-ctx.Done():
@@ -89,7 +91,7 @@ func Run(w *WorkloadSettings) {
 	wg := sync.WaitGroup{}
 
 	mu = sync.RWMutex{}
-	currDocuments = w.NumDocs + 1
+	currDocuments = w.NumDocs
 
 	for i := int64(0); i < w.NumWorkers; i++ {
 		wg.Add(1)

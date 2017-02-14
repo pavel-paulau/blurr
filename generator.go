@@ -9,9 +9,18 @@ type kvPayload struct {
 	value *Doc
 }
 
-type queryPayload struct {
-	field string
-	arg   interface{}
+// Filter specifies selection filter
+type Filter struct {
+	Field  string
+	Arg    interface{}
+	IsText bool
+}
+
+// QueryPayload carries arguments and metadata required for query execution
+type QueryPayload struct {
+	QueryType  string
+	Selection  []Filter
+	Projection []string // Projection specifies the fields to return
 }
 
 const prefix = "user-profile"
@@ -21,6 +30,7 @@ const (
 	q1query
 	q2query
 	q3query
+	q4query
 )
 
 func min(a, b int64) int64 {
@@ -78,11 +88,11 @@ func generateSeq(insertPercentage, queryType int) chan int {
 
 var currDocuments int64
 
-func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan queryPayload) {
+func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan *QueryPayload) {
 	var keySpace int64
 
 	ch1 := make(chan kvPayload, 1e3)
-	ch2 := make(chan queryPayload, 1e3)
+	ch2 := make(chan *QueryPayload, 1e3)
 
 	go func() {
 		defer close(ch1)
@@ -107,6 +117,8 @@ func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan queryPayloa
 				ch2 <- q2(currDocuments)
 			case q3query:
 				ch2 <- q3(currDocuments)
+			case q4query:
+				ch2 <- q4(currDocuments)
 			}
 		}
 	}()

@@ -36,12 +36,20 @@ func Insert(workerId int64, key string, value *qb.Doc) error {
 }
 
 // Query finds matching documents using MongoDB queries.
-func Query(workerId int64, field string, arg interface{}) error {
-	// FIXME: support multiple selectors
-	query := bson.M{field: arg}
+func Query(workerId int64, payload *qb.QueryPayload) error {
+	query := bson.M{}
+	for _, filter := range payload.Selection {
+		if filter.IsText {
+			query["$text"] = bson.M{"$search": filter.Arg}
+		} else {
+			query[filter.Field] = filter.Arg
+		}
+	}
 
-	// FIXME: support different projections
-	projection := bson.M{"address": 1, "_id": 0}
+	projection := bson.M{"_id": 0}
+	for _, p := range payload.Projection {
+		projection[p] = 1
+	}
 
 	session := mgoc[workerId]
 	var rs []interface{}

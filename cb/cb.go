@@ -90,9 +90,11 @@ func executeQuery(q *n1qlQuery) error {
 }
 
 // Query finds matching documents using prepared N1QL statements.
-func Query(_ int64, field string, arg interface{}) error {
-	// FIXME: support different queries and multiple arguments
-	q := n1qlQuery{"by_" + field, []interface{}{arg}, scanConsistency}
-
+func Query(_ int64, payload *qb.QueryPayload) error {
+	var args []interface{}
+	for _, filter := range payload.Selection {
+		args = append(args, filter.Arg)
+	}
+	q := n1qlQuery{payload.QueryType, args, scanConsistency}
 	return executeQuery(&q)
 }

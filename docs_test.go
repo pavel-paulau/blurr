@@ -38,7 +38,7 @@ func TestDoc(t *testing.T) {
 			Country:   "H7Wdlg8Xr",
 			FullState: "Nebraska",
 			State:     "NE",
-			Street:    "1789 bc614e 1e240 Place",
+			Street:    "1789 bc614e z1e240 Place",
 			Zip:       86789,
 		},
 		Category:    4,

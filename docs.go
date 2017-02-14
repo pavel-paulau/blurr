@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	sizeOverhead = int64(435)
+	sizeOverhead = int64(436)
 	chars        = "9CjASFTWkKgHrNl8eJXzfphmyb6ncvR2IDU3P1qiL0s4xYotuEQGB7dwaZ5VOM"
 	numChars     = int64(len(chars))
 )
@@ -69,7 +69,7 @@ func newStreet(i int64) string {
 	cappedSmall := newGroup(i, 10)
 	cappedLarge := newGroup(i, 1000*(1+i%3))
 
-	return building + " " + cappedSmall + " " + cappedLarge + " " + streetSuffixes[idx]
+	return building + " " + cappedSmall + " z" + cappedLarge + " " + streetSuffixes[idx]
 }
 
 func newZipCode(i int64) int64 {
@@ -126,6 +126,7 @@ type address struct {
 	Zip       int64  `json:"zip"`
 }
 
+// Doc represents a nested JSON document.
 type Doc struct {
 	ID          string  `json:",omitempty" bson:"_id"`
 	FirstName   string  `json:"firstname"`

@@ -15,7 +15,7 @@ func insertMockFailure(_ int64, _ string, _ *Doc) error {
 	return errors.New("test")
 }
 
-func queryMock(_ int64, _ string, _ interface{}) error {
+func queryMock(_ int64, _ *QueryPayload) error {
 	return nil
 }
 
@@ -73,6 +73,7 @@ func TestSetQuery(t *testing.T) {
 		"Q1": q1query,
 		"Q2": q2query,
 		"Q3": q3query,
+		"Q4": q4query,
 	}
 
 	for k, v := range mapping {
