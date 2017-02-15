@@ -65,7 +65,7 @@ func Load(w *WorkloadSettings) {
 func singleRun(wg *sync.WaitGroup, workerID int64, w *WorkloadSettings, ctx context.Context) {
 	defer wg.Done()
 
-	ch1, ch2 := generateMixedPayload(w)
+	ch1, ch2 := generateMixedPayload(w, workerID)
 
 	for {
 		select {
@@ -94,8 +94,6 @@ func Run(w *WorkloadSettings) {
 
 	mu = sync.RWMutex{}
 	currDocuments = w.NumDocs
-
-	zipf = newZipf(w.NumDocs)
 
 	for i := int64(0); i < w.NumWorkers; i++ {
 		wg.Add(1)

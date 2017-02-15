@@ -6,7 +6,7 @@ import (
 )
 
 func TestQ1(t *testing.T) {
-	payload := q1(123456789)
+	payload := q1(123456789, newZipf(123456789, 0))
 
 	var expectedQueryType = "Q1"
 	if payload.QueryType != expectedQueryType {
@@ -25,7 +25,7 @@ func TestQ1(t *testing.T) {
 }
 
 func TestQ2(t *testing.T) {
-	payload := q2(123456789)
+	payload := q2(123456789, newZipf(123456789, 0))
 
 	var expectedQueryType = "Q2"
 	if payload.QueryType != expectedQueryType {
@@ -44,7 +44,7 @@ func TestQ2(t *testing.T) {
 }
 
 func TestQ3(t *testing.T) {
-	payload := q3(123456789)
+	payload := q3(123456789, newZipf(123456789, 0))
 
 	var expectedQueryType = "Q3"
 	if payload.QueryType != expectedQueryType {
@@ -63,7 +63,7 @@ func TestQ3(t *testing.T) {
 }
 
 func TestQ4(t *testing.T) {
-	payload := q4(123456789)
+	payload := q4(123456789, newZipf(123456789, 0))
 
 	var expectedQueryType = "Q4"
 	if payload.QueryType != expectedQueryType {

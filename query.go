@@ -1,8 +1,12 @@
 package qb
 
+import (
+	"math/rand"
+)
+
 // Field lookup by document ID (key)
-func q1(keySpace int64) *QueryPayload {
-	_, key := existingKey(prefix, keySpace)
+func q1(keySpace int64, zipf *rand.Zipf) *QueryPayload {
+	_, key := existingKey(prefix, keySpace, zipf)
 
 	return &QueryPayload{
 		QueryType:  "Q1",
@@ -14,8 +18,8 @@ func q1(keySpace int64) *QueryPayload {
 }
 
 // Unique lookup by document field
-func q2(keySpace int64) *QueryPayload {
-	i, key := existingKey(prefix, keySpace)
+func q2(keySpace int64, zipf *rand.Zipf) *QueryPayload {
+	i, key := existingKey(prefix, keySpace, zipf)
 	alphabet := newAlphabet(i, key)
 
 	return &QueryPayload{
@@ -28,8 +32,8 @@ func q2(keySpace int64) *QueryPayload {
 }
 
 // Range search by document field
-func q3(keySpace int64) *QueryPayload {
-	i, _ := existingKey(prefix, keySpace)
+func q3(keySpace int64, zipf *rand.Zipf) *QueryPayload {
+	i, _ := existingKey(prefix, keySpace, zipf)
 
 	return &QueryPayload{
 		QueryType:  "Q3",
@@ -41,8 +45,8 @@ func q3(keySpace int64) *QueryPayload {
 }
 
 // Composite search using equality predicate and text search
-func q4(keySpace int64) *QueryPayload {
-	i, _ := existingKey(prefix, keySpace)
+func q4(keySpace int64, zipf *rand.Zipf) *QueryPayload {
+	i, _ := existingKey(prefix, keySpace, zipf)
 
 	return &QueryPayload{
 		QueryType:  "Q4",
@@ -55,8 +59,8 @@ func q4(keySpace int64) *QueryPayload {
 }
 
 // Document lookup by document ID (key)
-func q5(keySpace int64) *QueryPayload {
-	_, key := existingKey(prefix, keySpace)
+func q5(keySpace int64, zipf *rand.Zipf) *QueryPayload {
+	_, key := existingKey(prefix, keySpace, zipf)
 
 	return &QueryPayload{
 		QueryType:  "Q5",

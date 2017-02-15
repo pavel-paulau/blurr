@@ -89,11 +89,13 @@ func generateSeq(insertPercentage, queryType int) chan int {
 
 var currDocuments int64
 
-func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan *QueryPayload) {
+func generateMixedPayload(w *WorkloadSettings, workerID int64) (chan kvPayload, chan *QueryPayload) {
 	var keySpace int64
 
 	ch1 := make(chan kvPayload, 1e3)
 	ch2 := make(chan *QueryPayload, 1e3)
+
+	zipf := newZipf(w.NumDocs, workerID)
 
 	go func() {
 		defer close(ch1)
@@ -113,15 +115,15 @@ func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan *QueryPaylo
 				doc := newDoc(keySpace, key, w.DocSize)
 				ch1 <- kvPayload{key, &doc}
 			case q1query:
-				ch2 <- q1(currDocuments)
+				ch2 <- q1(currDocuments, zipf)
 			case q2query:
-				ch2 <- q2(currDocuments)
+				ch2 <- q2(currDocuments, zipf)
 			case q3query:
-				ch2 <- q3(currDocuments)
+				ch2 <- q3(currDocuments, zipf)
 			case q4query:
-				ch2 <- q4(currDocuments)
+				ch2 <- q4(currDocuments, zipf)
 			case q5query:
-				ch2 <- q5(currDocuments)
+				ch2 <- q5(currDocuments, zipf)
 			}
 		}
 	}()

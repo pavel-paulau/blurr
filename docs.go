@@ -13,21 +13,17 @@ const (
 	numChars     = int64(len(chars))
 )
 
-var (
-	zipf *rand.Zipf
-)
-
 func newKey(prefix string, i int64) string {
 	return prefix + "-" + strconv.FormatInt(i*i, 16)
 }
 
-func newZipf(numDocs int64) *rand.Zipf {
-	src := rand.NewSource(0)
+func newZipf(numDocs, workerID int64) *rand.Zipf {
+	src := rand.NewSource(workerID)
 	r := rand.New(src)
 	return rand.NewZipf(r, 1.1, 2, uint64(numDocs))
 }
 
-func existingKey(prefix string, numDocs int64) (int64, string) {
+func existingKey(prefix string, numDocs int64, zipf *rand.Zipf) (int64, string) {
 	i := numDocs - int64(zipf.Uint64()) - 1
 	return i, newKey(prefix, i)
 }

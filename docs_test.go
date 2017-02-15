@@ -8,8 +8,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	zipf = newZipf(123456789)
-
 	os.Exit(m.Run())
 }
 
@@ -26,7 +24,7 @@ func TestNewKey(t *testing.T) {
 
 func TestExistingKey(t *testing.T) {
 	prefix := "prefix"
-	i, actualKey := existingKey(prefix, 123456789)
+	i, actualKey := existingKey(prefix, 123456789, newZipf(123456789, 0))
 	expectedKey := newKey(prefix, i)
 
 	if i >= 123456789 {
@@ -213,8 +211,9 @@ func BenchmarkNewKey(b *testing.B) {
 func BenchmarkExistingKey(b *testing.B) {
 	prefix := "prefix"
 	i := int64(123456789)
+	z := newZipf(123456789, 0)
 	for n := 0; n < b.N; n++ {
-		existingKey(prefix, i)
+		existingKey(prefix, i, z)
 	}
 }
 
