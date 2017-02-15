@@ -2,9 +2,16 @@ package qb
 
 import (
 	"encoding/json"
+	"os"
 	"reflect"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	zipf = newZipf(123456789)
+
+	os.Exit(m.Run())
+}
 
 func TestNewKey(t *testing.T) {
 	prefix := "prefix"
@@ -19,8 +26,12 @@ func TestNewKey(t *testing.T) {
 
 func TestExistingKey(t *testing.T) {
 	prefix := "prefix"
-	i, actualKey := existingKey(prefix, 1000000)
+	i, actualKey := existingKey(prefix, 123456789)
 	expectedKey := newKey(prefix, i)
+
+	if i >= 123456789 {
+		t.Errorf("unexpected counter: %v", i)
+	}
 
 	if expectedKey != actualKey {
 		t.Errorf("expected: %v, got: %v", expectedKey, actualKey)

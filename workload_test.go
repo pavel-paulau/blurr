@@ -61,7 +61,7 @@ func TestRun(t *testing.T) {
 		Time:             10 * time.Millisecond,
 		InsertPercentage: 50,
 		DocSize:          512,
-		QueryType:        q2query,
+		QueryType:        q1query,
 	}
 
 	Run(&w)

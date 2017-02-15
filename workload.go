@@ -93,6 +93,8 @@ func Run(w *WorkloadSettings) {
 	mu = sync.RWMutex{}
 	currDocuments = w.NumDocs
 
+	zipf = newZipf(w.NumDocs)
+
 	for i := int64(0); i < w.NumWorkers; i++ {
 		wg.Add(1)
 		go singleRun(&wg, i, w, ctx)
