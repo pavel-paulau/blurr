@@ -80,3 +80,22 @@ func TestQ4(t *testing.T) {
 		t.Errorf("expected: %v, got: %v", expectedSelection[0].Field, payload.Selection[0].Field)
 	}
 }
+
+func TestQ5(t *testing.T) {
+	payload := q5(123456789, newZipf(123456789, 0))
+
+	var expectedQueryType = "Q5"
+	if payload.QueryType != expectedQueryType {
+		t.Errorf("expected: %v, got: %v", expectedQueryType, payload.QueryType)
+	}
+
+	expectedProjection := []string{}
+	if !reflect.DeepEqual(payload.Projection, expectedProjection) {
+		t.Errorf("expected: %v, got: %v", expectedProjection, payload.Projection)
+	}
+
+	expectedSelection := []Filter{{"_id", nil, false}}
+	if payload.Selection[0].Field != expectedSelection[0].Field {
+		t.Errorf("expected: %v, got: %v", expectedSelection[0].Field, payload.Selection[0].Field)
+	}
+}
