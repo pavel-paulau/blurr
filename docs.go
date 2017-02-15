@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	sizeOverhead = int64(436)
+	sizeOverhead = int64(438)
 	chars        = "9CjASFTWkKgHrNl8eJXzfphmyb6ncvR2IDU3P1qiL0s4xYotuEQGB7dwaZ5VOM"
 	numChars     = int64(len(chars))
 )
@@ -91,8 +91,8 @@ func newStreet(i int64) string {
 	return building + " " + cappedSmall + " z" + cappedLarge + " " + streetSuffixes[idx]
 }
 
-func newZipCode(i int64) int64 {
-	return 70000 + i%20000
+func newZipCode(i int64) string {
+	return strconv.FormatInt(70000+i%20000, 10)
 }
 
 func newBalance(alphabet string) float64 {
@@ -142,7 +142,7 @@ type address struct {
 	FullState string `json:"fullstate"`
 	State     string `json:"state"`
 	Street    string `json:"street"`
-	Zip       int64  `json:"zip"`
+	Zip       string `json:"zip"`
 }
 
 // Doc represents a nested JSON document.

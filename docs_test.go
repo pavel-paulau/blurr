@@ -50,7 +50,7 @@ func TestDoc(t *testing.T) {
 			FullState: "Nebraska",
 			State:     "NE",
 			Street:    "1789 bc614e z1e240 Place",
-			Zip:       86789,
+			Zip:       "86789",
 		},
 		Category:    4,
 		Balance:     163.06,
@@ -193,6 +193,12 @@ func BenchmarkNewGroup(b *testing.B) {
 	i := int64(123456789)
 	for n := 0; n < b.N; n++ {
 		newGroup(i, 10)
+	}
+}
+
+func BenchmarkNewZipCode(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		newZipCode(int64(n))
 	}
 }
 
