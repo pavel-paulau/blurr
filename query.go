@@ -1,6 +1,6 @@
 package qb
 
-// Unique lookup by document ID (key)
+// Field lookup by document ID (key)
 func q1(keySpace int64) *QueryPayload {
 	_, key := existingKey(prefix, keySpace)
 
@@ -50,6 +50,19 @@ func q4(keySpace int64) *QueryPayload {
 		Selection: []Filter{
 			{"address.zip", newZipCode(i), false},
 			{"address.street", "z" + newGroup(i, 1000*(1+i%3)), true},
+		},
+	}
+}
+
+// Document lookup by document ID (key)
+func q5(keySpace int64) *QueryPayload {
+	_, key := existingKey(prefix, keySpace)
+
+	return &QueryPayload{
+		QueryType:  "Q5",
+		Projection: []string{},
+		Selection: []Filter{
+			{"_id", key, false},
 		},
 	}
 }

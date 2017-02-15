@@ -31,6 +31,7 @@ const (
 	q2query
 	q3query
 	q4query
+	q5query
 )
 
 func min(a, b int64) int64 {
@@ -119,6 +120,8 @@ func generateMixedPayload(w *WorkloadSettings) (chan kvPayload, chan *QueryPaylo
 				ch2 <- q3(currDocuments)
 			case q4query:
 				ch2 <- q4(currDocuments)
+			case q5query:
+				ch2 <- q5(currDocuments)
 			}
 		}
 	}()

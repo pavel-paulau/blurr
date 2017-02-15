@@ -74,6 +74,7 @@ func TestSetQuery(t *testing.T) {
 		"Q2": q2query,
 		"Q3": q3query,
 		"Q4": q4query,
+		"Q5": q5query,
 	}
 
 	for k, v := range mapping {

@@ -43,6 +43,8 @@ func (w *WorkloadSettings) SetQueryType(workload string) {
 		w.QueryType = q3query
 	case "Q4":
 		w.QueryType = q4query
+	case "Q5":
+		w.QueryType = q5query
 	}
 }
 
