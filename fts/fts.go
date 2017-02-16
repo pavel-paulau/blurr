@@ -1,4 +1,4 @@
-package cb
+package fts
 
 import (
 	"bytes"
@@ -18,12 +18,12 @@ const (
 )
 
 var (
-	cbb                       *couchbase.Bucket
-	n1ql                      *http.Client
-	queryURL, scanConsistency string
+	cbb      *couchbase.Bucket
+	fts      *http.Client
+	queryURL string
 )
 
-// InitDatabase initializes Couchbase Server client and HTTP client for N1QL
+// InitDatabase initializes Couchbase Server client and HTTP client for FTS
 // queries.
 func InitDatabase(hostname string, consistency string) error {
 	baseURL := fmt.Sprintf("http://%s:8091/", hostname)
@@ -44,11 +44,9 @@ func InitDatabase(hostname string, consistency string) error {
 	}
 
 	t := &http.Transport{MaxIdleConnsPerHost: 10240}
-	n1ql = &http.Client{Transport: t}
+	fts = &http.Client{Transport: t}
 
-	queryURL = fmt.Sprintf("http://%s:8093/query/service", hostname)
-
-	scanConsistency = consistency
+	queryURL = fmt.Sprintf("http://%s:8094/api/index/default/query", hostname)
 
 	return nil
 }
@@ -58,20 +56,19 @@ func Insert(_ int64, key string, value *qb.Doc) error {
 	return cbb.Set(key, 0, value)
 }
 
-type n1qlQuery struct {
-	Prepared        string        `json:"prepared"`
-	Args            []interface{} `json:"args"`
-	ScanConsistency string        `json:"scan_consistency"`
+type ftsQuery struct {
+	Fields []string          `json:"fields"`
+	Query  map[string]string `json:"query"`
 }
 
-func executeQuery(q *n1qlQuery) error {
+func executeQuery(q *ftsQuery) error {
 	b, err := json.Marshal(q)
 	if err != nil {
 		return err
 	}
 	j := bytes.NewReader(b)
 
-	resp, err := n1ql.Post(queryURL, "application/json", j)
+	resp, err := fts.Post(queryURL, "application/json", j)
 	defer resp.Body.Close()
 
 	if err != nil {
@@ -89,12 +86,19 @@ func executeQuery(q *n1qlQuery) error {
 	return nil
 }
 
-// Query finds matching documents using prepared N1QL statements.
+// Query finds matching documents using FTS queries.
 func Query(_ int64, payload *qb.QueryPayload) error {
-	var args []interface{}
+	var query string
 	for _, filter := range payload.Selection {
-		args = append(args, filter.Arg)
+		query += " +" + filter.Field + ":" + filter.Arg.(string)
 	}
-	q := n1qlQuery{payload.QueryType, args, scanConsistency}
+
+	q := ftsQuery{
+		Fields: payload.Projection,
+		Query: map[string]string{
+			"query": query,
+		},
+	}
+
 	return executeQuery(&q)
 }
