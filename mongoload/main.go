@@ -26,7 +26,7 @@ func main() {
 
 	flag.Parse()
 
-	err := mongo.InitDatabase(w.Hostname, w.NumWorkers)
+	err := mongo.InitDatabase(w.Hostname, w.NumWorkers, false)
 	if err != nil {
 		log.Fatalf("database initialization failed: %v", err)
 	}

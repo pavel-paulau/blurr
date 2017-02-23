@@ -30,12 +30,13 @@ func main() {
 
 	flag.StringVar(&workload, "workload", "Q1", "Workload type")
 	flag.StringVar(&w.Hostname, "hostname", "127.0.0.1", "MongoDB hostname")
+	flag.BoolVar(&w.SSL, "ssl", false, "use SSL/TLS")
 
 	flag.Parse()
 
 	w.SetQueryType(workload)
 
-	err := mongo.InitDatabase(w.Hostname, w.NumWorkers)
+	err := mongo.InitDatabase(w.Hostname, w.NumWorkers, w.SSL)
 	if err != nil {
 		log.Fatalf("database initialization failed: %v", err)
 	}

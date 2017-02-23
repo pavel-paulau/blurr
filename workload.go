@@ -31,6 +31,7 @@ type WorkloadSettings struct {
 	Hostname                     string
 	Consistency                  string
 	QueryType                    int
+	SSL                          bool
 }
 
 // SetQueryType matches string query type to integer value

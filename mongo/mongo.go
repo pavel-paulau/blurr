@@ -1,6 +1,9 @@
 package mongo
 
 import (
+	"crypto/tls"
+	"net"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
@@ -14,9 +17,24 @@ const (
 	cName  = "default"
 )
 
+func tlsDialServer(addr *mgo.ServerAddr) (net.Conn, error) {
+	cfg := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	return tls.Dial("tcp", addr.String(), cfg)
+}
+
 // InitDatabase initializes a pool of MongoDB clients.
-func InitDatabase(hostname string, numWorkers int64) error {
-	session, err := mgo.Dial(hostname)
+func InitDatabase(hostname string, numWorkers int64, ssl bool) error {
+	info := mgo.DialInfo{
+		Addrs: []string{hostname},
+	}
+	if ssl {
+		info.DialServer = tlsDialServer
+	}
+
+	session, err := mgo.DialWithInfo(&info)
 	if err != nil {
 		return err
 	}
