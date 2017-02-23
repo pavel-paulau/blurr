@@ -35,7 +35,7 @@ func main() {
 
 	w.SetQueryType(workload)
 
-	err := fts.InitDatabase(w.Hostname, w.Consistency)
+	err := fts.InitDatabase(w.Hostname)
 	if err != nil {
 		log.Fatalf("database initialization failed: %v", err)
 	}

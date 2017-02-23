@@ -3,7 +3,6 @@ package fts
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -25,7 +24,7 @@ var (
 
 // InitDatabase initializes Couchbase Server client and HTTP client for FTS
 // queries.
-func InitDatabase(hostname string, consistency string) error {
+func InitDatabase(hostname string) error {
 	baseURL := fmt.Sprintf("http://%s:8091/", hostname)
 
 	c, err := couchbase.ConnectWithAuthCreds(baseURL, bucketName, "")
@@ -69,24 +68,23 @@ func executeQuery(q *ftsQuery) error {
 	j := bytes.NewReader(b)
 
 	resp, err := fts.Post(queryURL, "application/json", j)
-	defer resp.Body.Close()
-
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if _, err = ioutil.ReadAll(resp.Body); err != nil {
 		return err
 	}
 
 	if resp.StatusCode != 200 {
-		return errors.New("bad response")
+		return fmt.Errorf("%s - %d", "bad response", resp.StatusCode)
 	}
 
 	return nil
 }
 
-// Query finds matching documents using FTS queries.
+// Query finds matching documents using FTS API.
 func Query(_ int64, payload *qb.QueryPayload) error {
 	var query string
 	for _, filter := range payload.Selection {

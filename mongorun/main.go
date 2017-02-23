@@ -28,7 +28,7 @@ func main() {
 
 	flag.DurationVar(&w.Time, "time", time.Minute, "Benchmark duration")
 
-	flag.StringVar(&workload, "workload", "Q2", "Workload type")
+	flag.StringVar(&workload, "workload", "Q1", "Workload type")
 	flag.StringVar(&w.Hostname, "hostname", "127.0.0.1", "MongoDB hostname")
 
 	flag.Parse()

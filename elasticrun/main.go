@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/pavel-paulau/qb"
-	"github.com/pavel-paulau/qb/cb"
+	"github.com/pavel-paulau/qb/elastic"
 )
 
 const _GOGC = 300
@@ -17,7 +17,7 @@ func init() {
 }
 
 func main() {
-	w := qb.WorkloadSettings{IFn: cb.Insert, QFn: cb.Query}
+	w := qb.WorkloadSettings{IFn: elastic.Insert, QFn: elastic.Query}
 	var workload string
 
 	flag.Int64Var(&w.NumWorkers, "workers", 1, "number of workload threads")
@@ -28,15 +28,14 @@ func main() {
 
 	flag.DurationVar(&w.Time, "time", time.Minute, "Benchmark duration")
 
-	flag.StringVar(&workload, "workload", "Q1", "Workload type")
-	flag.StringVar(&w.Hostname, "hostname", "127.0.0.1", "Couchbase Server hostname")
-	flag.StringVar(&w.Consistency, "consistency", "not_bounded", "N1QL scan consistency")
+	flag.StringVar(&workload, "workload", "Q4", "Workload type")
+	flag.StringVar(&w.Hostname, "hostname", "127.0.0.1", "Elasticsearch hostname")
 
 	flag.Parse()
 
 	w.SetQueryType(workload)
 
-	err := cb.InitDatabase(w.Hostname, w.Consistency)
+	err := elastic.InitDatabase(w.Hostname)
 	if err != nil {
 		log.Fatalf("database initialization failed: %v", err)
 	}

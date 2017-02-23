@@ -2,6 +2,7 @@ package qb
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -83,6 +84,8 @@ func singleRun(wg *sync.WaitGroup, workerID int64, w *WorkloadSettings, ctx cont
 	}
 }
 
+// const rampUpDelay = 250 * time.Millisecond
+
 var mu sync.RWMutex
 
 // Run executes mixed workloads - a mix of queries and insert operations.
@@ -98,6 +101,9 @@ func Run(w *WorkloadSettings) {
 	for i := int64(0); i < w.NumWorkers; i++ {
 		wg.Add(1)
 		go singleRun(&wg, i, w, ctx)
+
+		delay := time.Duration(rand.Int63n(25)) * time.Millisecond
+		time.Sleep(delay)
 	}
 
 	wg.Wait()
