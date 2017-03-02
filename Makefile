@@ -1,11 +1,11 @@
 build:
-	go build -v -o cbl   ./cbload
-	go build -v -o cbr   ./cbrun
-	go build -v -o esl   ./elasticload
-	go build -v -o esr   ./elasticrun
-	go build -v -o ftsr  ./ftsrun
-	go build -v -o mgl   ./mongoload
-	go build -v -o mgr   ./mongorun
+	go build -v ./cmd/cbload
+	go build -v ./cmd/cbrun
+	go build -v ./cmd/elasticload
+	go build -v ./cmd/elasticrun
+	go build -v ./cmd/ftsrun
+	go build -v ./cmd/mongoload
+	go build -v ./cmd/mongorun
 
 fmt:
 	find . -name "*.go" -not -path "./vendor/*" | xargs gofmt -w -s
@@ -17,4 +17,4 @@ bench:
 	go test -v -run=AAA -test.benchmem -bench=.
 
 clean:
-	rm -f coverage.out cbl cbr esl esr ftsr mgl mgr
+	rm -f coverage.out cbload cbrun elasticload elasticrun ftsrun mongoload mongorun

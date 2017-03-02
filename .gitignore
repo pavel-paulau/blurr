@@ -9,10 +9,17 @@ vendor/gopkg.in/
 
 coverage.out
 
-cbl
-cbr
-esl
-esr
-ftsr
-mgl
-mgr
+cbload
+!cbload/
+cbrun
+!cbrun/
+elasticload
+!elasticload/
+elasticrun
+!elasticrun/
+ftsrun
+!ftsrun/
+mongoload
+!mongoload/
+mongorun
+!mongorun/

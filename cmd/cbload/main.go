@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/pavel-paulau/qb"
-	"github.com/pavel-paulau/qb/cb"
+	"github.com/pavel-paulau/qb/couchbase"
 )
 
 const _GOGC = 300
